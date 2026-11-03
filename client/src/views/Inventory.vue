@@ -5,9 +5,13 @@
       <p>{{ t('inventory.description') }}</p>
     </div>
 
-    <div v-if="loading" class="loading">{{ t('common.loading') }}</div>
-    <div v-else-if="error" class="error">{{ error }}</div>
-    <div v-else>
+    <DataState
+      :loading="loading"
+      :refreshing="refreshing"
+      :error="error"
+      :loaded="loaded"
+      @retry="load"
+    >
       <div class="card">
         <div class="card-header">
           <h3 class="card-title">{{ t('inventory.stockLevels') }} ({{ filteredItems.length }} {{ t('inventory.skus') }})</h3>
@@ -53,15 +57,18 @@
                 v-for="item in filteredItems"
                 :key="item.id"
                 class="clickable-row"
+                tabindex="0"
                 @click="showItemDetail(item)"
+                @keydown.enter.self.prevent="showItemDetail(item)"
+                @keydown.space.self.prevent="showItemDetail(item)"
               >
                 <td><strong>{{ item.sku }}</strong></td>
                 <td>{{ translateProductName(item.name) }}</td>
                 <td>{{ translateCategory(item.category) }}</td>
                 <td><strong>{{ item.quantity_on_hand }}</strong></td>
                 <td>{{ item.reorder_point }}</td>
-                <td>{{ currencySymbol }}{{ item.unit_cost.toFixed(2) }}</td>
-                <td><strong>{{ currencySymbol }}{{ (item.quantity_on_hand * item.unit_cost).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2}) }}</strong></td>
+                <td>{{ formatCurrencyWithDecimals(item.unit_cost, currentCurrency, 2) }}</td>
+                <td><strong>{{ formatCurrencyWithDecimals(item.quantity_on_hand * item.unit_cost, currentCurrency, 2) }}</strong></td>
                 <td>{{ translateWarehouse(item.location) }}</td>
                 <td>
                   <span :class="['badge', getStockStatusClass(item)]">
@@ -73,7 +80,7 @@
           </table>
         </div>
       </div>
-    </div>
+    </DataState>
 
     <InventoryDetailModal
       :is-open="showItemModal"
@@ -89,21 +96,19 @@ import { api } from '../api'
 import { useFilters } from '../composables/useFilters'
 import { useI18n } from '../composables/useI18n'
 import InventoryDetailModal from '../components/InventoryDetailModal.vue'
+import DataState from '../components/DataState.vue'
+import { useDataLoader } from '../composables/useDataLoader'
+import { formatCurrencyWithDecimals } from '../utils/currency'
 
 export default {
   name: 'Inventory',
   components: {
-    InventoryDetailModal
+    InventoryDetailModal,
+    DataState
   },
   setup() {
     const { t, currentCurrency, translateProductName, translateWarehouse } = useI18n()
 
-    const currencySymbol = computed(() => {
-      return currentCurrency.value === 'JPY' ? '¥' : '$'
-    })
-
-    const loading = ref(true)
-    const error = ref(null)
     const items = ref([])
     const searchQuery = ref('')
 
@@ -149,26 +154,16 @@ export default {
       })
     })
 
-    const loadInventory = async () => {
-      try {
-        loading.value = true
+    const { loading, refreshing, error, loaded, load, loadDebounced } = useDataLoader(
+      () => {
         const filters = getCurrentFilters()
         // Inventory doesn't support month/status filters, only warehouse and category
-        items.value = await api.getInventory({
-          warehouse: filters.warehouse,
-          category: filters.category
-        })
-      } catch (err) {
-        error.value = 'Failed to load inventory: ' + err.message
-      } finally {
-        loading.value = false
-      }
-    }
+        return api.getInventory({ warehouse: filters.warehouse, category: filters.category })
+      },
+      (data) => { items.value = data }
+    )
 
-    // Watch for filter changes and reload data
-    watch([selectedLocation, selectedCategory], () => {
-      loadInventory()
-    })
+    watch([selectedLocation, selectedCategory], loadDebounced)
 
     const getStockStatus = (item) => {
       const key = getStockStatusKey(item)
@@ -201,12 +196,15 @@ export default {
       showItemModal.value = true
     }
 
-    onMounted(loadInventory)
+    onMounted(load)
 
     return {
       t,
       loading,
+      refreshing,
       error,
+      loaded,
+      load,
       items,
       searchQuery,
       filteredItems,
@@ -216,7 +214,8 @@ export default {
       showItemModal,
       selectedItem,
       showItemDetail,
-      currencySymbol,
+      currentCurrency,
+      formatCurrencyWithDecimals,
       translateProductName,
       translateWarehouse
     }
@@ -266,7 +265,7 @@ export default {
   left: 0.75rem;
   width: 18px;
   height: 18px;
-  color: var(--text-faint);
+  color: var(--text-muted);
   pointer-events: none;
 }
 
@@ -289,7 +288,7 @@ export default {
 }
 
 .search-input::placeholder {
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .clear-search {
@@ -302,7 +301,7 @@ export default {
   background: transparent;
   border: none;
   border-radius: 4px;
-  color: var(--text-faint);
+  color: var(--text-muted);
   cursor: pointer;
   transition: all 0.2s;
 }

@@ -5,9 +5,13 @@
       <p>View quarterly performance metrics and monthly trends</p>
     </div>
 
-    <div v-if="loading" class="loading">Loading reports...</div>
-    <div v-else-if="error" class="error">{{ error }}</div>
-    <div v-else>
+    <DataState
+      :loading="loading"
+      :refreshing="refreshing"
+      :error="error"
+      :loaded="loaded"
+      @retry="loadData"
+    >
       <!-- Quarterly Performance -->
       <div class="card">
         <div class="card-header">
@@ -25,11 +29,11 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(q, index) in quarterlyData" :key="index">
+              <tr v-for="q in quarterlyData" :key="q.quarter">
                 <td><strong>{{ q.quarter }}</strong></td>
                 <td>{{ q.total_orders }}</td>
-                <td>${{ formatNumber(q.total_revenue) }}</td>
-                <td>${{ formatNumber(q.avg_order_value) }}</td>
+                <td>{{ formatMoney(q.total_revenue) }}</td>
+                <td>{{ formatMoney(q.avg_order_value) }}</td>
                 <td>
                   <span :class="getFulfillmentClass(q.fulfillment_rate)">
                     {{ q.fulfillment_rate }}%
@@ -48,12 +52,12 @@
         </div>
         <div class="chart-container">
           <div class="bar-chart">
-            <div v-for="(month, index) in monthlyData" :key="index" class="bar-wrapper">
+            <div v-for="month in monthlyData" :key="month.month" class="bar-wrapper">
               <div class="bar-container">
                 <div
                   class="bar"
                   :style="{ height: getBarHeight(month.revenue) + 'px' }"
-                  :title="'$' + formatNumber(month.revenue)"
+                  :title="formatMoney(month.revenue)"
                 ></div>
               </div>
               <div class="bar-label">{{ formatMonth(month.month) }}</div>
@@ -79,10 +83,10 @@
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(month, index) in monthlyData" :key="index">
+              <tr v-for="(month, index) in monthlyData" :key="month.month">
                 <td><strong>{{ formatMonth(month.month) }}</strong></td>
                 <td>{{ month.order_count }}</td>
-                <td>${{ formatNumber(month.revenue) }}</td>
+                <td>{{ formatMoney(month.revenue) }}</td>
                 <td>
                   <span v-if="index > 0" :class="getChangeClass(month.revenue, monthlyData[index - 1].revenue)">
                     {{ getChangeValue(month.revenue, monthlyData[index - 1].revenue) }}
@@ -105,11 +109,11 @@
       <div class="stats-grid">
         <div class="stat-card">
           <div class="stat-label">Total Revenue (YTD)</div>
-          <div class="stat-value">${{ formatNumber(totalRevenue) }}</div>
+          <div class="stat-value">{{ formatMoney(totalRevenue) }}</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Avg Monthly Revenue</div>
-          <div class="stat-value">${{ formatNumber(avgMonthlyRevenue) }}</div>
+          <div class="stat-value">{{ formatMoney(avgMonthlyRevenue) }}</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Total Orders (YTD)</div>
@@ -120,19 +124,29 @@
           <div class="stat-value">{{ bestQuarter }}</div>
         </div>
       </div>
-    </div>
+    </DataState>
   </div>
 </template>
 
 <script>
 import axios from 'axios'
+import DataState from '../components/DataState.vue'
+import { useI18n } from '../composables/useI18n'
+import { formatCurrencyWithDecimals } from '../utils/currency'
 
 export default {
   name: 'Reports',
+  components: { DataState },
+  setup() {
+    const { currentCurrency } = useI18n()
+    return { currentCurrency }
+  },
   data() {
     return {
       loading: true,
-      error: null,
+      refreshing: false,
+      loaded: false,
+      error: false,
       quarterlyData: [],
       monthlyData: [],
       totalRevenue: 0,
@@ -142,39 +156,43 @@ export default {
     }
   },
   mounted() {
-    console.log('Reports component mounted')
     this.loadData()
+  },
+  beforeUnmount() {
+    this.requestId++
   },
   methods: {
     async loadData() {
-      console.log('Loading reports data...')
+      // Non-reactive counter: a superseded (or unmounted) request must not overwrite newer state
+      this.requestId = (this.requestId || 0) + 1
+      const id = this.requestId
+      if (this.loaded) this.refreshing = true
+      else this.loading = true
       try {
-        this.loading = true
-
-        // Fetch quarterly data
-        console.log('Fetching quarterly data...')
-        const quarterlyResponse = await axios.get('http://localhost:8001/api/reports/quarterly')
+        const [quarterlyResponse, monthlyResponse] = await Promise.all([
+          axios.get('http://localhost:8001/api/reports/quarterly'),
+          axios.get('http://localhost:8001/api/reports/monthly-trends')
+        ])
+        if (id !== this.requestId) return
         this.quarterlyData = quarterlyResponse.data
-        console.log('Quarterly data:', this.quarterlyData)
-
-        // Fetch monthly data
-        console.log('Fetching monthly data...')
-        const monthlyResponse = await axios.get('http://localhost:8001/api/reports/monthly-trends')
         this.monthlyData = monthlyResponse.data
-        console.log('Monthly data:', this.monthlyData)
-
-        // Calculate summary stats
-        console.log('Calculating summary stats...')
         this.calculateSummaryStats()
-        console.log('Summary stats calculated')
-
+        this.loaded = true
+        this.error = false
       } catch (err) {
-        console.log('Error loading reports:', err)
-        this.error = 'Failed to load reports: ' + err.message
+        if (id !== this.requestId) return
+        console.error('Error loading reports:', err)
+        this.error = true
       } finally {
-        this.loading = false
-        console.log('Loading complete')
+        if (id === this.requestId) {
+          this.loading = false
+          this.refreshing = false
+        }
       }
+    },
+
+    formatMoney(value) {
+      return formatCurrencyWithDecimals(value, this.currentCurrency, 2)
     },
 
     calculateSummaryStats() {
@@ -212,7 +230,6 @@ export default {
     },
 
     formatNumber(num) {
-      console.log('Formatting number:', num)
       // Format number with commas
       var str = num.toString()
       var parts = str.split('.')
@@ -240,7 +257,6 @@ export default {
     },
 
     formatMonth(monthStr) {
-      console.log('Formatting month:', monthStr)
       // Convert YYYY-MM to readable format
       var parts = monthStr.split('-')
       var year = parts[0]
@@ -253,7 +269,6 @@ export default {
     },
 
     getBarHeight(revenue) {
-      console.log('Calculating bar height for revenue:', revenue)
       // Calculate bar height (max height 200px)
       var maxRevenue = 0
       for (var i = 0; i < this.monthlyData.length; i++) {
@@ -283,11 +298,11 @@ export default {
     getChangeValue(current, previous) {
       var change = current - previous
       if (change > 0) {
-        return '+$' + this.formatNumber(change)
+        return '+' + this.formatMoney(change)
       } else if (change < 0) {
-        return '-$' + this.formatNumber(Math.abs(change))
+        return '-' + this.formatMoney(Math.abs(change))
       } else {
-        return '$0.00'
+        return this.formatMoney(0)
       }
     },
 

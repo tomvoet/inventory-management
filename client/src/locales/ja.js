@@ -241,6 +241,7 @@ export default {
 
   // Filters
   filters: {
+    reset: 'すべてのフィルターをリセット',
     timePeriod: '期間',
     location: '場所',
     category: 'カテゴリ',
@@ -346,6 +347,11 @@ export default {
 
   // Tasks Modal
   tasks: {
+    deleteTask: 'タスクを削除',
+    loadFailed: 'タスクを読み込めませんでした。',
+    addFailed: 'タスクを追加できませんでした。もう一度お試しください。',
+    deleteFailed: 'タスクを削除できませんでした。もう一度お試しください。',
+    toggleFailed: 'タスクを更新できませんでした。もう一度お試しください。',
     title: 'マイタスク',
     taskTitle: 'タスク名',
     taskTitlePlaceholder: 'タスク名を入力...',
@@ -364,6 +370,9 @@ export default {
 
   // Common
   common: {
+    loadError: 'データを読み込めませんでした。もう一度お試しください。',
+    retry: '再試行',
+    refreshing: '更新中...',
     loading: '読み込み中...',
     error: 'エラー',
     noData: 'データがありません',

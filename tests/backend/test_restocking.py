@@ -167,3 +167,43 @@ class TestRestockingOrdersEndpoints:
 
         data = response.json()
         assert [o["order_number"] for o in data] == ["RST-0002", "RST-0001"]
+
+
+class TestRestockingOrderBounds:
+    """Test suite for input bounds on the restocking order endpoint."""
+
+    def _sku(self, client):
+        return client.get("/api/demand").json()[0]["item_sku"]
+
+    def test_create_restocking_order_quantity_over_limit(self, client):
+        """Test that quantities above the cap are rejected."""
+        payload = {
+            "budget": 1000,
+            "items": [{"item_sku": self._sku(client), "quantity": main.MAX_RESTOCK_QUANTITY + 1}],
+        }
+        response = client.post("/api/restocking-orders", json=payload)
+        assert response.status_code == 422
+
+    def test_create_restocking_order_infinite_budget(self, client):
+        """Test that a non-finite budget can't bypass the budget check."""
+        body = '{"budget": Infinity, "items": [{"item_sku": "%s", "quantity": 1}]}' % self._sku(client)
+        response = client.post(
+            "/api/restocking-orders", content=body, headers={"Content-Type": "application/json"}
+        )
+        assert response.status_code == 422
+
+    def test_create_restocking_order_too_many_items(self, client):
+        """Test that orders with more items than the cap are rejected."""
+        items = [{"item_sku": f"SKU-{i}", "quantity": 1} for i in range(main.MAX_RESTOCK_ITEMS + 1)]
+        response = client.post("/api/restocking-orders", json={"budget": 1000, "items": items})
+        assert response.status_code == 422
+
+    def test_create_restocking_order_store_full(self, client, monkeypatch):
+        """Test that new orders are refused once the in-memory store is full."""
+        monkeypatch.setattr(main, "MAX_RESTOCK_ORDERS", 1)
+        payload = {"budget": 1_000_000, "items": [{"item_sku": self._sku(client), "quantity": 1}]}
+        assert client.post("/api/restocking-orders", json=payload).status_code == 201
+
+        response = client.post("/api/restocking-orders", json=payload)
+        assert response.status_code == 409
+        assert "detail" in response.json()

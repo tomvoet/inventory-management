@@ -4,9 +4,13 @@
       <h2>{{ t('dashboard.title') }}</h2>
     </div>
 
-    <div v-if="loading" class="loading">{{ t('common.loading') }}</div>
-    <div v-else-if="error" class="error">{{ error }}</div>
-    <div v-else>
+    <DataState
+      :loading="loading"
+      :refreshing="refreshing"
+      :error="error"
+      :loaded="loaded"
+      @retry="load"
+    >
       <!-- Key Performance Indicators -->
       <div class="kpi-section">
         <h3 class="section-title">{{ t('dashboard.kpi.title') }}</h3>
@@ -148,7 +152,7 @@
                 <div class="h-bar-label">{{ translateCategory(cat.name) }}</div>
                 <div class="h-bar-container">
                   <div class="h-bar" :style="{ width: (cat.value / maxCategoryValue * 100) + '%', background: cat.color }">
-                    <span class="h-bar-value">{{ selectedCurrency === 'JPY' ? formatCurrency(cat.value, selectedCurrency) : `$${(cat.value / 1000).toFixed(1)}K` }}</span>
+                    <span class="h-bar-value">{{ formatCompactCurrency(cat.value, selectedCurrency) }}</span>
                   </div>
                 </div>
               </div>
@@ -187,23 +191,28 @@
                 <tr
                   v-for="item in backlogItems"
                   :key="item.id"
+                  class="clickable-row"
+                  tabindex="0"
+                  @click="showBacklogDetail(item)"
+                  @keydown.enter.self.prevent="showBacklogDetail(item)"
+                  @keydown.space.self.prevent="showBacklogDetail(item)"
                 >
-                  <td @click="showBacklogDetail(item)" style="cursor: pointer;"><strong>{{ item.order_id }}</strong></td>
-                  <td @click="showBacklogDetail(item)" style="cursor: pointer;"><strong>{{ item.item_sku }}</strong></td>
-                  <td @click="showBacklogDetail(item)" style="cursor: pointer;">{{ translateProductName(item.item_name) }}</td>
-                  <td @click="showBacklogDetail(item)" style="cursor: pointer;">{{ item.quantity_needed }}</td>
-                  <td @click="showBacklogDetail(item)" style="cursor: pointer;">{{ item.quantity_available }}</td>
-                  <td @click="showBacklogDetail(item)" style="cursor: pointer;">
+                  <td><strong>{{ item.order_id }}</strong></td>
+                  <td><strong>{{ item.item_sku }}</strong></td>
+                  <td>{{ translateProductName(item.item_name) }}</td>
+                  <td>{{ item.quantity_needed }}</td>
+                  <td>{{ item.quantity_available }}</td>
+                  <td>
                     <span class="badge danger">
                       {{ Math.abs(item.quantity_needed - item.quantity_available) }} {{ t('dashboard.inventoryShortages.unitsShort') }}
                     </span>
                   </td>
-                  <td @click="showBacklogDetail(item)" style="cursor: pointer;">
+                  <td>
                     <span :style="{ color: item.days_delayed > 7 ? 'var(--danger)' : 'var(--warning)', fontWeight: 600 }">
                       {{ item.days_delayed }} {{ t('dashboard.inventoryShortages.days') }}
                     </span>
                   </td>
-                  <td @click="showBacklogDetail(item)" style="cursor: pointer;">
+                  <td>
                     <span :class="['badge', item.priority]">
                       {{ translatePriority(item.priority) }}
                     </span>
@@ -253,7 +262,10 @@
                   v-for="item in topProducts"
                   :key="item.sku"
                   class="clickable-row"
+                  tabindex="0"
                   @click="showProductDetail(item)"
+                  @keydown.enter.self.prevent="showProductDetail(item)"
+                  @keydown.space.self.prevent="showProductDetail(item)"
                 >
                   <td><strong>{{ translateProductName(item.name) }}</strong></td>
                   <td>{{ item.sku }}</td>
@@ -272,7 +284,7 @@
           </div>
         </div>
       </div>
-    </div>
+    </DataState>
 
     <ProductDetailModal
       :is-open="showProductModal"
@@ -301,20 +313,21 @@ import { ref, onMounted, computed, watch } from 'vue'
 import { api } from '../api'
 import { useFilters } from '../composables/useFilters'
 import { useI18n } from '../composables/useI18n'
-import { formatCurrency } from '../utils/currency'
+import { formatCurrency, formatCompactCurrency } from '../utils/currency'
+import DataState from '../components/DataState.vue'
+import { useDataLoader } from '../composables/useDataLoader'
 import ProductDetailModal from '../components/ProductDetailModal.vue'
 import BacklogDetailModal from '../components/BacklogDetailModal.vue'
 
 export default {
   name: 'Dashboard',
   components: {
+    DataState,
     ProductDetailModal,
     BacklogDetailModal,
   },
   setup() {
     const { t, currentCurrency, translateProductName, translateWarehouse } = useI18n()
-    const loading = ref(true)
-    const error = ref(null)
     const summary = ref({})
     const allOrders = ref([])
     const inventoryItems = ref([])
@@ -349,12 +362,7 @@ export default {
       return monthlyGoal // $800,000 for a single month
     })
 
-    const revenueGoalDisplay = computed(() => {
-      if (revenueGoal.value >= 1000000) {
-        return `$${(revenueGoal.value / 1000000).toFixed(1)}M`
-      }
-      return `$${(revenueGoal.value / 1000).toFixed(0)}K`
-    })
+    const revenueGoalDisplay = computed(() => formatCompactCurrency(revenueGoal.value, currentCurrency.value))
 
     const statusData = computed(() => {
       const counts = { delivered: 0, shipped: 0, processing: 0, backordered: 0 }
@@ -558,28 +566,23 @@ export default {
       return allBacklogItems.value.filter(b => validSkus.has(b.item_sku))
     })
 
-    const loadData = async () => {
-      try {
-        loading.value = true
+    const { loading, refreshing, error, loaded, load, loadDebounced } = useDataLoader(
+      () => {
         const filters = getCurrentFilters()
-
-        const [summaryData, ordersData, inventoryData, backlogData] = await Promise.all([
+        return Promise.all([
           api.getDashboardSummary(filters),
           api.getOrders(filters),
           api.getInventory(filters),
           api.getBacklog()
         ])
-
+      },
+      ([summaryData, ordersResp, inventoryData, backlogData]) => {
         summary.value = summaryData
-        allOrders.value = ordersData
+        allOrders.value = ordersResp
         inventoryItems.value = inventoryData
         allBacklogItems.value = backlogData
-      } catch (err) {
-        error.value = 'Failed to load dashboard data: ' + err.message
-      } finally {
-        loading.value = false
       }
-    }
+    )
 
     const calculatePercentage = (value, goal) => {
       return ((value / goal) * 100).toFixed(2)
@@ -673,16 +676,18 @@ export default {
     }
 
     // Watch for filter changes and reload data
-    watch([selectedPeriod, selectedLocation, selectedCategory, selectedStatus], () => {
-      loadData()
-    })
+    watch([selectedPeriod, selectedLocation, selectedCategory, selectedStatus], loadDebounced)
 
-    onMounted(loadData)
+    onMounted(load)
 
     return {
       t,
       loading,
+      refreshing,
       error,
+      loaded,
+      load,
+      formatCompactCurrency,
       summary,
       ordersData,
       fillRate,
@@ -1010,7 +1015,7 @@ export default {
   justify-content: space-between;
   padding-right: 1rem;
   font-size: 0.75rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
   border-right: 1px solid var(--border);
 }
 
@@ -1077,7 +1082,7 @@ export default {
 .no-data {
   padding: 2rem;
   text-align: center;
-  color: var(--text-faint);
+  color: var(--text-muted);
   font-size: 0.875rem;
 }
 
@@ -1196,7 +1201,7 @@ export default {
 
 .task-item.completed .task-text {
   text-decoration: line-through;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .task-checkbox {

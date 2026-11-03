@@ -5,9 +5,13 @@
       <p>{{ t('orders.description') }}</p>
     </div>
 
-    <div v-if="loading" class="loading">{{ t('common.loading') }}</div>
-    <div v-else-if="error" class="error">{{ error }}</div>
-    <div v-else>
+    <DataState
+      :loading="loading"
+      :refreshing="refreshing"
+      :error="error"
+      :loaded="loaded"
+      @retry="load"
+    >
       <div class="stats-grid">
         <div class="stat-card success">
           <div class="stat-label">{{ t('status.delivered') }}</div>
@@ -98,9 +102,9 @@
                       {{ t('orders.itemsCount', { count: order.items.length }) }}
                     </summary>
                     <div class="items-dropdown">
-                      <div v-for="(item, idx) in order.items" :key="idx" class="item-entry">
+                      <div v-for="item in order.items" :key="item.sku" class="item-entry">
                         <span class="item-name">{{ translateProductName(item.name) }}</span>
-                        <span class="item-meta">{{ t('orders.quantity') }}: {{ item.quantity }} @ {{ currencySymbol }}{{ item.unit_price }}</span>
+                        <span class="item-meta">{{ t('orders.quantity') }}: {{ item.quantity }} @ {{ formatCurrencyWithDecimals(item.unit_price, currentCurrency, 2) }}</span>
                       </div>
                     </div>
                   </details>
@@ -112,13 +116,13 @@
                 </td>
                 <td class="col-date">{{ formatDate(order.order_date) }}</td>
                 <td class="col-date">{{ formatDate(order.expected_delivery) }}</td>
-                <td class="col-value"><strong>{{ currencySymbol }}{{ order.total_value.toLocaleString() }}</strong></td>
+                <td class="col-value"><strong>{{ formatCurrencyWithDecimals(order.total_value, currentCurrency, 2) }}</strong></td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
-    </div>
+    </DataState>
   </div>
 </template>
 
@@ -128,17 +132,15 @@ import { api } from '../api'
 import { useFilters } from '../composables/useFilters'
 import { useI18n } from '../composables/useI18n'
 import { formatCurrency, formatCurrencyWithDecimals } from '../utils/currency'
+import DataState from '../components/DataState.vue'
+import { useDataLoader } from '../composables/useDataLoader'
 
 export default {
   name: 'Orders',
+  components: { DataState },
   setup() {
     const { t, currentCurrency, translateProductName, translateCustomerName } = useI18n()
 
-    const currencySymbol = computed(() => {
-      return currentCurrency.value === 'JPY' ? '¥' : '$'
-    })
-    const loading = ref(true)
-    const error = ref(null)
     const orders = ref([])
     const restockingOrders = ref([])
     const restockingError = ref(null)
@@ -152,24 +154,17 @@ export default {
       getCurrentFilters
     } = useFilters()
 
-    const loadOrders = async () => {
-      try {
-        loading.value = true
-        const filters = getCurrentFilters()
-        const fetchedOrders = await api.getOrders(filters)
-
+    const { loading, refreshing, error, loaded, load: loadOrders, loadDebounced } = useDataLoader(
+      () => api.getOrders(getCurrentFilters()),
+      (fetchedOrders) => {
         // Sort orders by order_date (earliest first)
         orders.value = fetchedOrders.sort((a, b) => {
           const dateA = new Date(a.order_date)
           const dateB = new Date(b.order_date)
           return dateA - dateB
         })
-      } catch (err) {
-        error.value = 'Failed to load orders: ' + err.message
-      } finally {
-        loading.value = false
       }
-    }
+    )
 
     // Separate from loadOrders so a failure here never blanks the main list
     const loadRestockingOrders = async () => {
@@ -183,9 +178,7 @@ export default {
     }
 
     // Watch for filter changes and reload data
-    watch([selectedPeriod, selectedLocation, selectedCategory, selectedStatus], () => {
-      loadOrders()
-    })
+    watch([selectedPeriod, selectedLocation, selectedCategory, selectedStatus], loadDebounced)
 
     const getOrdersByStatus = (status) => {
       return orders.value.filter(order => order.status === status)
@@ -219,7 +212,10 @@ export default {
     return {
       t,
       loading,
+      refreshing,
       error,
+      loaded,
+      load: loadOrders,
       orders,
       restockingOrders,
       restockingError,
@@ -229,7 +225,6 @@ export default {
       getOrdersByStatus,
       getOrderStatusClass,
       formatDate,
-      currencySymbol,
       translateProductName,
       translateCustomerName
     }

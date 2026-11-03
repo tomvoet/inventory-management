@@ -1,16 +1,5 @@
 <template>
-  <Teleport to="body">
-    <Transition name="modal">
-      <div v-if="isOpen" class="modal-overlay" @click="close">
-        <div class="modal-container" @click.stop>
-          <div class="modal-header">
-            <h3 class="modal-title">{{ t('profileDetails.title') }}</h3>
-            <button class="close-button" @click="close">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-              </svg>
-            </button>
-          </div>
+  <BaseModal :open="isOpen" :title="t('profileDetails.title')" max-width="600px" @close="close">
 
           <div class="modal-body">
             <div class="profile-section">
@@ -59,13 +48,11 @@
           <div class="modal-footer">
             <button class="btn-secondary" @click="close">{{ t('profileDetails.close') }}</button>
           </div>
-        </div>
-      </div>
-    </Transition>
-  </Teleport>
+  </BaseModal>
 </template>
 
 <script setup>
+import BaseModal from './BaseModal.vue'
 import { useAuth } from '../composables/useAuth'
 import { useI18n } from '../composables/useI18n'
 
@@ -97,64 +84,11 @@ const formatDate = (dateString) => {
 </script>
 
 <style scoped>
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--overlay);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-  padding: 1rem;
-}
 
-.modal-container {
-  background: var(--surface);
-  border-radius: 12px;
-  box-shadow: 0 20px 50px var(--shadow-lg);
-  max-width: 600px;
-  width: 100%;
-  max-height: 90vh;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
 
-.modal-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1.5rem;
-  border-bottom: 1px solid var(--border);
-}
 
-.modal-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--text);
-  letter-spacing: -0.025em;
-}
 
-.close-button {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  padding: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  transition: all 0.15s ease;
-}
 
-.close-button:hover {
-  background: var(--surface-subtle);
-  color: var(--text);
-}
 
 .modal-body {
   flex: 1;
@@ -257,24 +191,4 @@ const formatDate = (dateString) => {
   border-color: var(--border-strong);
 }
 
-/* Modal transition animations */
-.modal-enter-active,
-.modal-leave-active {
-  transition: opacity 0.2s ease;
-}
-
-.modal-enter-from,
-.modal-leave-to {
-  opacity: 0;
-}
-
-.modal-enter-active .modal-container,
-.modal-leave-active .modal-container {
-  transition: transform 0.2s ease;
-}
-
-.modal-enter-from .modal-container,
-.modal-leave-to .modal-container {
-  transform: scale(0.95);
-}
 </style>

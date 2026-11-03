@@ -2,90 +2,61 @@
   <BaseModal :open="isOpen && !!inventoryItem" title="Inventory Item Details" max-width="700px" @close="close">
 
           <div class="modal-body">
-            <div class="item-header">
-              <div class="item-icon" :class="getStockIconClass()">
-                <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-                  <rect x="8" y="12" width="32" height="28" rx="2" stroke="currentColor" stroke-width="2.5"/>
-                  <path d="M16 8V16M32 8V16M8 20H40" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-                  <path d="M16 28H32M16 34H24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-                </svg>
+            <div class="detail-head">
+              <div class="detail-title">
+                <h4 class="detail-name">{{ translateProductName(inventoryItem.name) }}</h4>
+                <div class="detail-sub num">SKU: {{ inventoryItem.sku }}</div>
               </div>
-              <div class="item-title-section">
-                <h4 class="item-name">{{ translateProductName(inventoryItem.name) }}</h4>
-                <div class="item-sku">SKU: {{ inventoryItem.sku }}</div>
-              </div>
-              <span class="stock-badge" :class="getStockStatusClass()">
-                {{ getStockStatus() }}
-              </span>
             </div>
 
-            <div class="stock-summary">
-              <div class="summary-card primary">
+            <div class="summary">
+              <div class="summary-cell">
                 <div class="summary-label">Quantity on Hand</div>
                 <div class="summary-value">{{ inventoryItem.quantity_on_hand }} units</div>
               </div>
-              <div class="summary-card" :class="getSummaryCardClass()">
+              <div class="summary-cell">
                 <div class="summary-label">Stock Level</div>
-                <div class="summary-value">{{ stockPercentage }}%</div>
-                <div class="summary-subtitle">vs. reorder point</div>
+                <div class="summary-value" :class="getSummaryValueClass()">{{ stockPercentage }}%</div>
+                <div class="summary-note">vs. reorder point</div>
               </div>
             </div>
 
-            <div class="info-grid">
-              <div class="info-item">
-                <div class="info-label">Category</div>
-                <div class="info-value">{{ inventoryItem.category }}</div>
+            <dl class="detail-list">
+              <div class="detail-row">
+                <dt class="detail-label">Category</dt>
+                <dd class="detail-value">{{ inventoryItem.category }}</dd>
               </div>
-
-              <div class="info-item">
-                <div class="info-label">Location</div>
-                <div class="info-value">{{ inventoryItem.location }}</div>
+              <div class="detail-row">
+                <dt class="detail-label">Reorder Point</dt>
+                <dd class="detail-value num">{{ inventoryItem.reorder_point }} units</dd>
               </div>
-
-              <div class="info-item">
-                <div class="info-label">Reorder Point</div>
-                <div class="info-value">{{ inventoryItem.reorder_point }} units</div>
+              <div class="detail-row">
+                <dt class="detail-label">Units Remaining</dt>
+                <dd class="detail-value num" :class="inventoryItem.quantity_on_hand <= inventoryItem.reorder_point ? 'neg' : 'pos'">{{ inventoryItem.quantity_on_hand - inventoryItem.reorder_point }} units</dd>
               </div>
-
-              <div class="info-item">
-                <div class="info-label">Units Remaining</div>
-                <div class="info-value">
-                  <span :style="{ color: inventoryItem.quantity_on_hand <= inventoryItem.reorder_point ? 'var(--danger)' : 'var(--success)' }">
-                    {{ inventoryItem.quantity_on_hand - inventoryItem.reorder_point }} units
-                  </span>
-                </div>
+              <div class="detail-row">
+                <dt class="detail-label">Unit Cost</dt>
+                <dd class="detail-value num">{{ money(inventoryItem.unit_cost, 2) }}</dd>
               </div>
-
-              <div class="info-item">
-                <div class="info-label">Unit Cost</div>
-                <div class="info-value">{{ money(inventoryItem.unit_cost, 2) }}</div>
+              <div class="detail-row">
+                <dt class="detail-label">Total Value</dt>
+                <dd class="detail-value num">{{ money(totalValue, 2) }}</dd>
               </div>
-
-              <div class="info-item">
-                <div class="info-label">Total Value</div>
-                <div class="info-value total-value">
-                  {{ money(totalValue, 2) }}
-                </div>
+              <div class="detail-row">
+                <dt class="detail-label">Warehouse</dt>
+                <dd class="detail-value">{{ translateWarehouse(inventoryItem.location) }}</dd>
               </div>
-
-              <div class="info-item">
-                <div class="info-label">Warehouse</div>
-                <div class="info-value">{{ translateWarehouse(inventoryItem.location) }}</div>
+              <div class="detail-row">
+                <dt class="detail-label">Status</dt>
+                <dd class="detail-value">
+                  <span :class="['badge', getStockStatusClass()]">{{ getStockStatus() }}</span>
+                </dd>
               </div>
-
-              <div class="info-item">
-                <div class="info-label">Status</div>
-                <div class="info-value">
-                  <span :class="['badge', getStockStatusClass()]">
-                    {{ getStockStatus() }}
-                  </span>
-                </div>
-              </div>
-            </div>
+            </dl>
           </div>
 
           <div class="modal-footer">
-            <button class="btn-secondary" @click="close">Close</button>
+            <button type="button" class="btn-secondary" @click="close">Close</button>
           </div>
   </BaseModal>
 </template>
@@ -145,219 +116,129 @@ const getStockStatusClass = () => {
   return 'success'
 }
 
-const getStockIconClass = () => {
+const getSummaryValueClass = () => {
   const status = getStockStatus()
-  if (status === 'Low Stock') return 'danger-icon'
-  if (status === 'Adequate') return 'warning-icon'
-  return 'success-icon'
-}
-
-const getSummaryCardClass = () => {
-  const status = getStockStatus()
-  if (status === 'Low Stock') return 'danger-card'
-  if (status === 'Adequate') return 'warning-card'
-  return 'success-card'
+  if (status === 'Low Stock') return 'neg'
+  if (status === 'Adequate') return ''
+  return 'pos'
 }
 </script>
 
 <style scoped>
-
-
-
-
-
-
 .modal-body {
   flex: 1;
   overflow-y: auto;
-  padding: 2rem;
+  padding: 20px;
 }
 
-.item-header {
+.detail-head {
   display: flex;
-  align-items: center;
-  gap: 1.25rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 1.5rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
-.item-icon {
-  width: 64px;
-  height: 64px;
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  flex-shrink: 0;
-}
-
-.item-icon.success-icon {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-}
-
-.item-icon.warning-icon {
-  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-}
-
-.item-icon.danger-icon {
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-}
-
-.item-title-section {
-  flex: 1;
+.detail-title {
   min-width: 0;
 }
 
-.item-name {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text);
-  margin: 0 0 0.5rem 0;
-}
-
-.item-sku {
-  font-size: 0.875rem;
-  color: var(--text-muted);
-  font-family: 'Monaco', 'Courier New', monospace;
-}
-
-.stock-badge {
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  font-size: 0.875rem;
+.detail-name {
+  font-size: 16px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
-  flex-shrink: 0;
+  color: var(--ink);
+  line-height: 1.3;
+  margin: 0;
 }
 
-.stock-badge.success {
-  background: var(--success-bg);
-  color: var(--success-text);
+.detail-sub {
+  margin-top: 2px;
+  font-size: 12.5px;
+  color: var(--muted);
 }
 
-.stock-badge.warning {
-  background: var(--warning-bg);
-  color: var(--warning-text);
-}
-
-.stock-badge.danger {
-  background: var(--danger-bg);
-  color: var(--danger-text);
-}
-
-.stock-summary {
+.summary {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-  margin-bottom: 2rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 16px;
 }
 
-.summary-card {
-  padding: 1.25rem;
-  border-radius: 10px;
-  border: 2px solid;
-}
-
-.summary-card.primary {
-  border-color: var(--info-border);
-  background: var(--accent-soft);
-}
-
-.summary-card.success-card {
-  border-color: var(--success-border);
-  background: var(--success-bg);
-}
-
-.summary-card.warning-card {
-  border-color: var(--warning-border);
-  background: var(--warning-soft);
-}
-
-.summary-card.danger-card {
-  border-color: var(--danger-border);
-  background: var(--danger-soft);
+.summary-cell {
+  background: var(--surface);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
 }
 
 .summary-label {
-  font-size: 0.813rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-muted);
-  margin-bottom: 0.5rem;
+  font-size: 13px;
+  color: var(--muted);
 }
 
 .summary-value {
-  font-size: 1.875rem;
-  font-weight: 700;
-  color: var(--text);
-}
-
-.summary-subtitle {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  margin-top: 0.25rem;
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-}
-
-.info-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.info-label {
-  font-size: 0.813rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-muted);
-}
-
-.info-value {
-  font-size: 0.938rem;
-  color: var(--text);
+  font-size: 20px;
   font-weight: 500;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  line-height: 1.2;
 }
 
-.info-value.total-value {
-  font-size: 1.125rem;
-  color: var(--accent);
-  font-weight: 700;
+.summary-note {
+  font-size: 12px;
+  color: var(--muted);
 }
+
+.summary-value.neg { color: var(--neg); }
+.summary-value.pos { color: var(--pos); }
+
+.detail-list {
+  margin: 0;
+}
+
+.detail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 40px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.detail-row:last-child {
+  border-bottom: 0;
+}
+
+.detail-label {
+  font-size: 13px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.detail-value {
+  font-size: 13.5px;
+  color: var(--ink);
+  text-align: right;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.detail-value.neg { color: var(--neg); }
+.detail-value.pos { color: var(--pos); }
 
 .modal-footer {
-  padding: 1.5rem;
-  border-top: 1px solid var(--border);
+  padding: 12px 20px;
+  border-top: 1px solid var(--line);
   display: flex;
   justify-content: flex-end;
-  gap: 0.75rem;
+  gap: 8px;
 }
-
-.btn-secondary {
-  padding: 0.625rem 1.25rem;
-  background: var(--surface-subtle);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-weight: 500;
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 0.15s ease;
-  font-family: inherit;
-}
-
-.btn-secondary:hover {
-  background: var(--border);
-  border-color: var(--border-strong);
-}
-
 </style>

@@ -2,71 +2,53 @@
   <BaseModal :open="isOpen && !!product" title="Product Details" max-width="700px" @close="close">
 
           <div class="modal-body">
-            <div class="product-header">
-              <div class="product-icon">
-                <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-                  <rect x="8" y="12" width="32" height="28" rx="2" stroke="currentColor" stroke-width="2.5"/>
-                  <path d="M16 8V16M32 8V16M8 20H40" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
-                </svg>
-              </div>
-              <div class="product-title-section">
-                <h4 class="product-name">{{ product.name }}</h4>
-                <div class="product-sku">SKU: {{ product.sku }}</div>
-              </div>
-              <span class="stock-badge" :class="getStockBadgeClass(product.stockLevel)">
-                {{ product.stockLevel }}
-              </span>
-            </div>
-
-            <div class="info-grid">
-              <div class="info-item">
-                <div class="info-label">Category</div>
-                <div class="info-value">{{ product.category }}</div>
-              </div>
-
-              <div class="info-item">
-                <div class="info-label">Warehouse</div>
-                <div class="info-value">{{ product.warehouse }}</div>
-              </div>
-
-              <div class="info-item">
-                <div class="info-label">Units Ordered</div>
-                <div class="info-value">{{ product.unitsOrdered }}</div>
-              </div>
-
-              <div class="info-item">
-                <div class="info-label">Total Revenue</div>
-                <div class="info-value">{{ money(product.revenue) }}</div>
-              </div>
-
-              <div class="info-item">
-                <div class="info-label">Current Stock</div>
-                <div class="info-value">{{ product.quantityOnHand }} units</div>
-              </div>
-
-              <div class="info-item">
-                <div class="info-label">Reorder Point</div>
-                <div class="info-value">{{ product.reorderPoint }} units</div>
-              </div>
-
-              <div class="info-item">
-                <div class="info-label">First Order Date</div>
-                <div class="info-value">{{ formatDate(product.firstOrderDate) }}</div>
-              </div>
-
-              <div class="info-item">
-                <div class="info-label">Stock Status</div>
-                <div class="info-value">
-                  <span :class="['badge', getStockBadgeClass(product.stockLevel)]">
-                    {{ product.stockLevel }}
-                  </span>
-                </div>
+            <div class="detail-head">
+              <div class="detail-title">
+                <h4 class="detail-name">{{ product.name }}</h4>
+                <div class="detail-sub num">SKU: {{ product.sku }}</div>
               </div>
             </div>
+
+            <dl class="detail-list">
+              <div class="detail-row">
+                <dt class="detail-label">Category</dt>
+                <dd class="detail-value">{{ product.category }}</dd>
+              </div>
+              <div class="detail-row">
+                <dt class="detail-label">Warehouse</dt>
+                <dd class="detail-value">{{ product.warehouse }}</dd>
+              </div>
+              <div class="detail-row">
+                <dt class="detail-label">Units Ordered</dt>
+                <dd class="detail-value num">{{ product.unitsOrdered }}</dd>
+              </div>
+              <div class="detail-row">
+                <dt class="detail-label">Total Revenue</dt>
+                <dd class="detail-value num">{{ money(product.revenue) }}</dd>
+              </div>
+              <div class="detail-row">
+                <dt class="detail-label">Current Stock</dt>
+                <dd class="detail-value num">{{ product.quantityOnHand }} units</dd>
+              </div>
+              <div class="detail-row">
+                <dt class="detail-label">Reorder Point</dt>
+                <dd class="detail-value num">{{ product.reorderPoint }} units</dd>
+              </div>
+              <div class="detail-row">
+                <dt class="detail-label">First Order Date</dt>
+                <dd class="detail-value">{{ formatDate(product.firstOrderDate) }}</dd>
+              </div>
+              <div class="detail-row">
+                <dt class="detail-label">Stock Status</dt>
+                <dd class="detail-value">
+                  <span :class="['badge', getStockBadgeClass(product.stockLevel)]">{{ product.stockLevel }}</span>
+                </dd>
+              </div>
+            </dl>
           </div>
 
           <div class="modal-footer">
-            <button class="btn-secondary" @click="close">Close</button>
+            <button type="button" class="btn-secondary" @click="close">Close</button>
           </div>
   </BaseModal>
 </template>
@@ -117,132 +99,119 @@ const getStockBadgeClass = (stockLevel) => {
 </script>
 
 <style scoped>
-
-
-
-
-
-
 .modal-body {
   flex: 1;
   overflow-y: auto;
-  padding: 2rem;
+  padding: 20px;
 }
 
-.product-header {
+.detail-head {
   display: flex;
-  align-items: center;
-  gap: 1.25rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 2rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
-.product-icon {
-  width: 64px;
-  height: 64px;
-  background: linear-gradient(135deg, var(--accent-bright) 0%, var(--accent) 100%);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  flex-shrink: 0;
-}
-
-.product-title-section {
-  flex: 1;
+.detail-title {
   min-width: 0;
 }
 
-.product-name {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text);
-  margin: 0 0 0.5rem 0;
-}
-
-.product-sku {
-  font-size: 0.875rem;
-  color: var(--text-muted);
-  font-family: 'Monaco', 'Courier New', monospace;
-}
-
-.stock-badge {
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  font-size: 0.875rem;
+.detail-name {
+  font-size: 16px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
+  color: var(--ink);
+  line-height: 1.3;
+  margin: 0;
+}
+
+.detail-sub {
+  margin-top: 2px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.summary-cell {
+  background: var(--surface);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.summary-label {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.summary-value {
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  line-height: 1.2;
+}
+
+.summary-note {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.summary-value.neg { color: var(--neg); }
+.summary-value.pos { color: var(--pos); }
+
+.detail-list {
+  margin: 0;
+}
+
+.detail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 40px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.detail-row:last-child {
+  border-bottom: 0;
+}
+
+.detail-label {
+  font-size: 13px;
+  color: var(--muted);
   flex-shrink: 0;
 }
 
-.stock-badge.success {
-  background: var(--success-bg);
-  color: var(--success-text);
+.detail-value {
+  font-size: 13.5px;
+  color: var(--ink);
+  text-align: right;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
-.stock-badge.warning {
-  background: var(--warning-bg);
-  color: var(--warning-text);
-}
-
-.stock-badge.danger {
-  background: var(--danger-bg);
-  color: var(--danger-text);
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-}
-
-.info-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.info-label {
-  font-size: 0.813rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-muted);
-}
-
-.info-value {
-  font-size: 0.938rem;
-  color: var(--text);
-  font-weight: 500;
-}
+.detail-value.neg { color: var(--neg); }
+.detail-value.pos { color: var(--pos); }
 
 .modal-footer {
-  padding: 1.5rem;
-  border-top: 1px solid var(--border);
+  padding: 12px 20px;
+  border-top: 1px solid var(--line);
   display: flex;
   justify-content: flex-end;
-  gap: 0.75rem;
+  gap: 8px;
 }
-
-.btn-secondary {
-  padding: 0.625rem 1.25rem;
-  background: var(--surface-subtle);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-weight: 500;
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 0.15s ease;
-  font-family: inherit;
-}
-
-.btn-secondary:hover {
-  background: var(--border);
-  border-color: var(--border-strong);
-}
-
 </style>

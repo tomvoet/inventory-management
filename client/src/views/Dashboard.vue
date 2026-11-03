@@ -115,7 +115,6 @@
                   <th class="num">{{ t('dashboard.inventoryShortages.shortage') }}</th>
                   <th class="num">{{ t('dashboard.inventoryShortages.daysDelayed') }}</th>
                   <th>{{ t('dashboard.inventoryShortages.priority') }}</th>
-                  <th><span class="sr-only">Actions</span></th>
                 </tr>
               </thead>
               <tbody>
@@ -144,27 +143,11 @@
                     </div>
                   </td>
                   <td class="num short">&minus;{{ Math.abs(item.quantity_needed - item.quantity_available).toLocaleString() }}</td>
-                  <td class="num strong">{{ item.days_delayed }} {{ t('dashboard.inventoryShortages.days') }}</td>
+                  <td class="num strong">{{ t(item.days_delayed === 1 ? 'dashboard.inventoryShortages.dayCount' : 'dashboard.inventoryShortages.daysCount', { count: item.days_delayed }) }}</td>
                   <td>
                     <span :class="['badge', item.priority]">
                       {{ translatePriority(item.priority) }}
                     </span>
-                  </td>
-                  <td class="action-cell">
-                    <button
-                      v-if="!item.purchase_order_id"
-                      @click.stop="openPOModal(item)"
-                      class="btn btn-sm"
-                    >
-                      Create PO
-                    </button>
-                    <button
-                      v-else
-                      @click.stop="viewPO(item)"
-                      class="btn btn-sm"
-                    >
-                      View PO
-                    </button>
                   </td>
                 </tr>
               </tbody>
@@ -231,13 +214,6 @@
       @close="showBacklogModal = false"
     />
 
-    <PurchaseOrderModal
-      :is-open="showPOModal"
-      :backlog-item="selectedBacklogForPO"
-      :mode="poModalMode"
-      @close="showPOModal = false"
-      @po-created="handlePOCreated"
-    />
   </div>
 </template>
 
@@ -270,9 +246,6 @@ export default {
     const selectedProduct = ref(null)
     const showBacklogModal = ref(false)
     const selectedBacklogItem = ref(null)
-    const showPOModal = ref(false)
-    const selectedBacklogForPO = ref(null)
-    const poModalMode = ref('create')
 
     // Use shared filters
     const {
@@ -673,28 +646,6 @@ export default {
       showBacklogModal.value = true
     }
 
-    const openPOModal = (item) => {
-      selectedBacklogForPO.value = item
-      poModalMode.value = 'create'
-      showPOModal.value = true
-    }
-
-    const viewPO = (item) => {
-      selectedBacklogForPO.value = item
-      poModalMode.value = 'view'
-      showPOModal.value = true
-    }
-
-    const handlePOCreated = (poData) => {
-      // Update the backlog item with the new PO ID
-      const item = allBacklogItems.value.find(b => b.id === poData.backlog_item_id)
-      if (item) {
-        item.purchase_order_id = poData.id
-        item.purchase_order = poData
-      }
-      showPOModal.value = false
-    }
-
     // Watch for filter changes and reload data
     watch([selectedPeriod, selectedLocation, selectedCategory, selectedStatus], loadDebounced)
 
@@ -744,13 +695,7 @@ export default {
       formatCurrency,
       Math,
       translateProductName,
-      translateWarehouse,
-      showPOModal,
-      selectedBacklogForPO,
-      poModalMode,
-      openPOModal,
-      viewPO,
-      handlePOCreated
+      translateWarehouse
     }
   }
 }
@@ -897,8 +842,8 @@ export default {
 
 .health-metrics {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 16px;
   padding-top: 14px;
   border-top: 1px solid var(--line);
 }
@@ -915,6 +860,7 @@ export default {
 }
 
 .health-metric-value {
+  font-family: 'Geist', ui-sans-serif, system-ui, sans-serif;
   font-size: 17px;
   color: var(--ink);
 }
@@ -1045,10 +991,6 @@ td.short {
 td.strong {
   color: var(--ink);
   white-space: nowrap;
-}
-
-.action-cell {
-  text-align: right;
 }
 
 .sr-only {

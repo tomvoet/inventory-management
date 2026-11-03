@@ -13,20 +13,20 @@
       @retry="load"
     >
       <div class="stats-grid">
-        <div class="stat-card success">
-          <div class="stat-label">{{ t('status.delivered') }}</div>
+        <div class="stat-card">
+          <div class="stat-label stat-dot dot-ok">{{ t('status.delivered') }}</div>
           <div class="stat-value">{{ getOrdersByStatus('Delivered').length }}</div>
         </div>
-        <div class="stat-card info">
-          <div class="stat-label">{{ t('status.shipped') }}</div>
+        <div class="stat-card">
+          <div class="stat-label stat-dot dot-accent">{{ t('status.shipped') }}</div>
           <div class="stat-value">{{ getOrdersByStatus('Shipped').length }}</div>
         </div>
-        <div class="stat-card warning">
-          <div class="stat-label">{{ t('status.processing') }}</div>
+        <div class="stat-card">
+          <div class="stat-label stat-dot dot-warn">{{ t('status.processing') }}</div>
           <div class="stat-value">{{ getOrdersByStatus('Processing').length }}</div>
         </div>
-        <div class="stat-card danger">
-          <div class="stat-label">{{ t('status.backordered') }}</div>
+        <div class="stat-card">
+          <div class="stat-label stat-dot dot-crit">{{ t('status.backordered') }}</div>
           <div class="stat-value">{{ getOrdersByStatus('Backordered').length }}</div>
         </div>
       </div>
@@ -35,8 +35,8 @@
         <div class="card-header">
           <h3 class="card-title">{{ t('orders.submittedOrders.title') }} ({{ restockingOrders.length }})</h3>
         </div>
-        <div v-if="restockingError" class="error">{{ restockingError }}</div>
-        <div v-else-if="restockingOrders.length === 0" class="loading">{{ t('orders.submittedOrders.empty') }}</div>
+        <div v-if="restockingError" class="error" role="alert">{{ restockingError }}</div>
+        <div v-else-if="restockingOrders.length === 0" class="empty">{{ t('orders.submittedOrders.empty') }}</div>
         <div v-else class="table-container">
           <table class="orders-table">
             <thead>
@@ -51,24 +51,24 @@
             </thead>
             <tbody>
               <tr v-for="order in restockingOrders" :key="order.id">
-                <td class="col-order-number"><strong>{{ order.order_number }}</strong></td>
+                <td class="col-order-number"><span class="num order-no">{{ order.order_number }}</span></td>
                 <td class="col-items">
                   <details class="items-details">
                     <summary class="items-summary">
-                      {{ t('orders.itemsCount', { count: order.items.length }) }}
+                      {{ t(order.items.length === 1 ? 'orders.itemsCountOne' : 'orders.itemsCount', { count: order.items.length }) }}
                     </summary>
                     <div class="items-dropdown">
                       <div v-for="item in order.items" :key="item.item_sku" class="item-entry">
                         <span class="item-name">{{ translateProductName(item.item_name) }}</span>
-                        <span class="item-meta">{{ t('orders.quantity') }}: {{ item.quantity }} @ {{ formatCurrencyWithDecimals(item.unit_cost, currentCurrency, 2) }}</span>
+                        <span class="item-meta num">{{ t('orders.quantity') }}: {{ item.quantity }} @ {{ formatCurrencyWithDecimals(item.unit_cost, currentCurrency, 2) }}</span>
                       </div>
                     </div>
                   </details>
                 </td>
-                <td class="col-date">{{ formatDate(order.submitted_date) }}</td>
-                <td class="col-date">{{ t('orders.submittedOrders.leadTimeDays', { count: order.lead_time_days }) }}</td>
-                <td class="col-date">{{ formatDate(order.expected_delivery) }}</td>
-                <td class="col-value num"><strong>{{ formatCurrencyWithDecimals(order.total_cost, currentCurrency, 2) }}</strong></td>
+                <td class="col-date"><span class="num">{{ formatDate(order.submitted_date) }}</span></td>
+                <td class="col-date"><span class="num">{{ t('orders.submittedOrders.leadTimeDays', { count: order.lead_time_days }) }}</span></td>
+                <td class="col-date"><span class="num">{{ formatDate(order.expected_delivery) }}</span></td>
+                <td class="col-value num">{{ formatCurrencyWithDecimals(order.total_cost, currentCurrency, 2) }}</td>
               </tr>
             </tbody>
           </table>
@@ -94,17 +94,17 @@
             </thead>
             <tbody>
               <tr v-for="order in orders" :key="order.id">
-                <td class="col-order-number"><strong>{{ order.order_number }}</strong></td>
+                <td class="col-order-number"><span class="num order-no">{{ order.order_number }}</span></td>
                 <td class="col-customer">{{ translateCustomerName(order.customer) }}</td>
                 <td class="col-items">
                   <details class="items-details">
                     <summary class="items-summary">
-                      {{ t('orders.itemsCount', { count: order.items.length }) }}
+                      {{ t(order.items.length === 1 ? 'orders.itemsCountOne' : 'orders.itemsCount', { count: order.items.length }) }}
                     </summary>
                     <div class="items-dropdown">
                       <div v-for="item in order.items" :key="item.sku" class="item-entry">
                         <span class="item-name">{{ translateProductName(item.name) }}</span>
-                        <span class="item-meta">{{ t('orders.quantity') }}: {{ item.quantity }} @ {{ formatCurrencyWithDecimals(item.unit_price, currentCurrency, 2) }}</span>
+                        <span class="item-meta num">{{ t('orders.quantity') }}: {{ item.quantity }} @ {{ formatCurrencyWithDecimals(item.unit_price, currentCurrency, 2) }}</span>
                       </div>
                     </div>
                   </details>
@@ -114,9 +114,9 @@
                     {{ t(`status.${order.status.toLowerCase()}`) }}
                   </span>
                 </td>
-                <td class="col-date">{{ formatDate(order.order_date) }}</td>
-                <td class="col-date">{{ formatDate(order.expected_delivery) }}</td>
-                <td class="col-value num"><strong>{{ formatCurrencyWithDecimals(order.total_value, currentCurrency, 2) }}</strong></td>
+                <td class="col-date"><span class="num">{{ formatDate(order.order_date) }}</span></td>
+                <td class="col-date"><span class="num">{{ formatDate(order.expected_delivery) }}</span></td>
+                <td class="col-value num">{{ formatCurrencyWithDecimals(order.total_value, currentCurrency, 2) }}</td>
               </tr>
             </tbody>
           </table>
@@ -233,49 +233,57 @@ export default {
 </script>
 
 <style scoped>
-/* Fixed table layout to prevent column shifting */
+/* Fixed layout stops columns shifting; min-width makes narrow screens scroll instead of squash */
 .orders-table {
   table-layout: fixed;
-  width: 100%;
+  min-width: 860px;
 }
 
-/* Column widths */
-.col-order-number {
-  width: 130px;
+.col-order-number { width: 130px; }
+.col-customer { width: 180px; }
+.col-items { width: 190px; }
+.col-status { width: 130px; }
+.col-date { width: 130px; }
+.col-value { width: 120px; }
+
+.stat-dot {
+  display: flex;
+  align-items: center;
+  gap: 7px;
 }
 
-.col-customer {
-  width: 180px;
+.stat-dot::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--seg-gray);
 }
 
-.col-items {
-  width: 200px;
+.dot-ok::before { background: var(--dot-ok); }
+.dot-accent::before { background: var(--accent); }
+.dot-warn::before { background: var(--dot-warn); }
+.dot-crit::before { background: var(--dot-crit); }
+
+.order-no {
+  color: var(--ink);
 }
 
-.col-status {
-  width: 130px;
+.empty {
+  padding: 32px 18px;
+  text-align: center;
+  color: var(--muted);
 }
 
-.col-date {
-  width: 140px;
-}
-
-.col-value {
-  width: 120px;
-}
-
-/* Items details styling */
-.items-details {
-  position: relative;
-}
-
+/* Expands inline: an absolute popover would be clipped by the scrolling table container */
 .items-summary {
   cursor: pointer;
-  color: var(--accent-bright);
-  font-weight: 500;
+  color: var(--text);
   list-style: none;
   user-select: none;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .items-summary::-webkit-details-marker {
@@ -283,58 +291,58 @@ export default {
 }
 
 .items-summary::before {
-  content: '▶';
-  display: inline-block;
-  margin-right: 0.375rem;
-  font-size: 0.75rem;
-  transition: transform 0.2s;
+  content: '';
+  width: 5px;
+  height: 5px;
+  border-right: 1.5px solid var(--muted);
+  border-bottom: 1.5px solid var(--muted);
+  transform: rotate(-45deg);
+  transition: transform 0.15s;
 }
 
 .items-details[open] .items-summary::before {
-  transform: rotate(90deg);
+  transform: rotate(45deg);
 }
 
 .items-summary:hover {
-  color: var(--accent);
-  text-decoration: underline;
+  color: var(--ink);
 }
 
-/* Dropdown container */
+.items-summary:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
 .items-dropdown {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  margin-top: 0.5rem;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  box-shadow: 0 4px 6px -1px var(--shadow-md), 0 2px 4px -1px var(--shadow-sm);
-  padding: 0.75rem;
-  z-index: 10;
-  min-width: 300px;
-  max-width: 400px;
+  padding: 4px 0 10px;
 }
 
 .item-entry {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
-  padding: 0.5rem;
-  border-bottom: 1px solid var(--surface-subtle);
+  gap: 2px;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line);
+  white-space: normal;
 }
 
 .item-entry:last-child {
-  border-bottom: none;
+  border-bottom: 0;
 }
 
 .item-name {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--text);
+  font-size: 13px;
+  color: var(--ink);
 }
 
 .item-meta {
-  font-size: 0.813rem;
-  color: var(--text-muted);
+  font-size: 12px;
+  color: var(--muted);
+}
+
+td:has(.items-details[open]) {
+  vertical-align: top;
+  padding-top: 14px;
 }
 </style>

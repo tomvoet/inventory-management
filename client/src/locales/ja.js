@@ -10,7 +10,7 @@ export default {
     reports: 'レポート',
     companyName: '触媒コンポーネンツ',
     subtitle: '在庫管理システム',
-    brandSub: '在庫',
+    brandSub: 'オペレーション',
     groupOperations: '業務',
     groupPlanning: '計画'
   },
@@ -73,7 +73,9 @@ export default {
       daysDelayed: '遅延日数',
       priority: '優先度',
       unitsShort: '単位不足',
-      days: '日'
+      days: '日',
+      dayCount: '{count}日',
+      daysCount: '{count}日'
     },
     topProducts: {
       title: '収益別トップ製品',
@@ -94,6 +96,7 @@ export default {
   inventory: {
     title: '在庫',
     description: 'すべての在庫品目の追跡と管理',
+    summary: '{skus}品目、在庫額{value}。{low}件が発注点を下回っています。',
     stockLevels: '在庫レベル',
     skus: 'SKU',
     searchPlaceholder: '品目名で検索...',
@@ -160,6 +163,7 @@ export default {
     avgOrderValue: '平均注文額',
     onTimeDelivery: '定時配達',
     itemsCount: '{count}件',
+    itemsCountOne: '{count}件',
     quantity: '数量',
     submittedOrders: {
       title: '送信済み発注',
@@ -236,6 +240,7 @@ export default {
     stableDemand: '需要安定',
     decreasingDemand: '需要減少',
     itemsCount: '{count}件',
+    itemsCountOne: '{count}件',
     more: 'さらに...',
     demandForecasts: '需要予測',
     table: {

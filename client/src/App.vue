@@ -383,6 +383,8 @@ body {
   position: sticky;
   top: 0;
   height: 100vh;
+  align-self: start;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -535,6 +537,7 @@ body {
   .sidebar {
     position: static;
     height: auto;
+    overflow-y: visible;
     flex-direction: row;
     flex-wrap: wrap;
     align-items: center;
@@ -645,13 +648,32 @@ body {
 }
 
 .stat-value {
-  font-family: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-family: 'Geist', ui-sans-serif, system-ui, sans-serif;
   font-variant-numeric: tabular-nums;
   font-size: 26px;
   font-weight: 500;
   letter-spacing: -0.02em;
   color: var(--ink);
   line-height: 1.15;
+}
+
+@media (max-width: 600px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .stat-card {
+    padding: 12px 14px 14px;
+  }
+
+  /* An odd last card would leave an empty cell showing the line-colored gap background */
+  .stat-card:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
+  .stat-value {
+    font-size: 22px;
+  }
 }
 
 .stat-card.warning .stat-value {
@@ -666,7 +688,7 @@ body {
   color: var(--neg);
 }
 
-/* Cards: header and table-container run edge to edge; other direct children get inner padding unless the card is .flush */
+/* Header and .table-container run edge to edge; other direct children get 18px side margins. Add .flush to opt out (e.g. card is just a table or toolbar) */
 .card {
   background: var(--surface);
   border-radius: 8px;
@@ -752,6 +774,12 @@ tbody tr:hover td {
 th.num,
 td.num {
   text-align: right;
+}
+
+/* Codes and figures must never break mid-token; narrow tables scroll instead */
+td.num,
+td .num {
+  white-space: nowrap;
 }
 
 /* Headers stay in the UI font; only cell values are monospaced */

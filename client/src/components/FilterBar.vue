@@ -212,14 +212,21 @@ export default {
 }
 
 @media (max-width: 900px) {
+  /* Chips in 2 columns; reset button spans both rows in a third column so the bar stays two rows tall */
   .filters-container {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 32px;
     padding: 10px 16px;
   }
 
-  /* Two chips per row on narrow screens */
   .chip {
-    flex: 1 1 calc(50% - 4px);
     min-width: 0;
+  }
+
+  .reset-filters-btn {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    align-self: center;
   }
 
   .chip-select {

@@ -2,14 +2,11 @@
   <div class="inventory">
     <div class="page-header">
       <h2>{{ t('inventory.title') }}</h2>
-      <p>
-        {{ t('inventory.description') }}
-        <span class="meta">
-          <span class="num">{{ items.length }}</span> {{ t('inventory.skus') }}
-          · <span class="num">{{ formatCurrencyWithDecimals(totalValue, currentCurrency, 0) }}</span> {{ t('inventory.totalValue') }}
-          · <span class="num">{{ statusCounts.lowStock }}</span> {{ t('inventory.lowStockItems') }}
-        </span>
-      </p>
+      <p>{{ t('inventory.summary', {
+        skus: items.length,
+        value: formatCurrencyWithDecimals(totalValue, currentCurrency, 0),
+        low: statusCounts.lowStock
+      }) }}</p>
     </div>
 
     <DataState
@@ -280,10 +277,6 @@ export default {
 </script>
 
 <style scoped>
-.meta {
-  margin-left: 4px;
-}
-
 .toolbar {
   display: flex;
   flex-wrap: wrap;

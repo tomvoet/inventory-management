@@ -299,6 +299,82 @@ export default {
     tokyo: '東京'
   },
 
+  // Reports
+  reports: {
+    title: 'パフォーマンスレポート',
+    description: '四半期の業績指標と月次トレンドを表示します',
+    monthYear: '{year}年{month}',
+    notAvailable: 'N/A',
+    quarterly: {
+      title: '四半期実績',
+      quarter: '四半期',
+      totalOrders: '総注文数',
+      totalRevenue: '総売上',
+      avgOrderValue: '平均注文額',
+      fulfillmentRate: '充足率'
+    },
+    trend: {
+      title: '月次売上トレンド'
+    },
+    mom: {
+      title: '前月比分析',
+      month: '月',
+      orders: '注文数',
+      revenue: '売上',
+      change: '増減',
+      growthRate: '成長率'
+    },
+    stats: {
+      totalRevenue: '総売上',
+      avgMonthlyRevenue: '月平均売上',
+      totalOrders: '総注文数',
+      bestQuarter: '最高業績の四半期'
+    }
+  },
+
+  // Backlog
+  backlog: {
+    title: 'バックログ管理',
+    subtitle: '在庫不足の追跡と解消',
+    highPriority: '優先度: 高',
+    mediumPriority: '優先度: 中',
+    lowPriority: '優先度: 低',
+    totalItems: 'バックログ項目の合計',
+    itemsTitle: 'バックログ項目',
+    empty: 'バックログ項目はありません - すべての注文を履行できます。',
+    columns: {
+      orderId: '注文ID',
+      sku: 'SKU',
+      itemName: '品名',
+      quantityNeeded: '必要数量',
+      quantityAvailable: '利用可能数量',
+      shortage: '不足',
+      daysDelayed: '遅延日数',
+      priority: '優先度'
+    },
+    unitsShort: '{count}単位不足',
+    day: '{count}日',
+    days: '{count}日',
+    unit: '{count}単位',
+    units: '{count}単位'
+  },
+
+  // Backlog Detail Modal
+  backlogDetail: {
+    title: '在庫不足の詳細',
+    sku: 'SKU: {sku}',
+    priorityLabel: '優先度: {priority}',
+    shortageAmount: '不足数量',
+    daysDelayed: '遅延日数',
+    orderId: '注文ID',
+    itemSku: '品目SKU',
+    quantityNeeded: '必要数量',
+    quantityAvailable: '利用可能数量',
+    expectedDate: '納品予定日',
+    status: 'ステータス',
+    notAvailable: '該当なし'
+  },
+
   // Months
   months: {
     jan: '1月',
@@ -388,6 +464,13 @@ export default {
 
   // Product Names
   productNames: {
+    'Electric Motor 5HP': '電動モーター 5HP',
+    'High-Temperature Gasket': '耐熱ガスケット',
+    'Industrial Widget Type A': '産業用ウィジェット タイプA',
+    'Logic Controller Board': 'ロジックコントローラーボード',
+    'Oil Filter Cartridge': 'オイルフィルターカートリッジ',
+    'Pressure Relief Valve': '圧力逃がし弁',
+    'Steel Bearing Assembly': 'スチールベアリング組立',
     'Single Layer PCB Assembly': '単層PCB組立',
     'Dual Layer PCB Assembly': '二層PCB組立',
     'Multi Layer PCB Assembly': '多層PCB組立',

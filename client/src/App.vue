@@ -381,27 +381,29 @@ body {
   height: 70px;
 }
 
+/* Title stacked over the subtitle: roughly half the width of the old single line */
 .logo {
   display: flex;
-  align-items: baseline;
-  gap: 0.75rem;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.125rem;
   flex-shrink: 0;
   white-space: nowrap;
 }
 
 .logo h1 {
-  font-size: 1.375rem;
+  font-size: 1.125rem;
   font-weight: 700;
+  line-height: 1.2;
   color: var(--text);
   letter-spacing: -0.025em;
 }
 
 .subtitle {
-  font-size: 0.813rem;
+  font-size: 0.688rem;
+  line-height: 1.2;
   color: var(--text-muted);
   font-weight: 400;
-  padding-left: 0.75rem;
-  border-left: 1px solid var(--border);
 }
 
 /* Tabs take the leftover space and scroll instead of squeezing the right-hand controls */
@@ -491,13 +493,11 @@ body {
   outline-offset: 2px;
 }
 
-@media (max-width: 1440px) {
+@media (max-width: 1280px) {
   .subtitle {
     display: none;
   }
-}
 
-@media (max-width: 1280px) {
   .nav-container {
     gap: 0.75rem;
     padding: 0 1rem;
@@ -509,7 +509,7 @@ body {
   }
 
   .logo h1 {
-    font-size: 1.25rem;
+    font-size: 1.0625rem;
   }
 }
 

@@ -1,7 +1,13 @@
 <template>
   <div class="dashboard">
-    <div class="page-header">
-      <h2>{{ t('dashboard.title') }}</h2>
+    <div class="page-header header-row">
+      <div>
+        <h2>{{ t('dashboard.title') }}</h2>
+        <p v-if="!loading && !error">
+          <span class="num">{{ backlogItems.length }}</span> {{ t('dashboard.blockedOrders') }}
+        </p>
+      </div>
+      <a v-if="!loading && backlogItems.length > 0" href="#shortages" class="review-link">{{ t('dashboard.reviewShortages') }}</a>
     </div>
 
     <DataState
@@ -12,179 +18,104 @@
       @retry="load"
     >
       <!-- Key Performance Indicators -->
-      <div class="kpi-section">
-        <h3 class="section-title">{{ t('dashboard.kpi.title') }}</h3>
-        <div class="kpi-grid">
-          <div class="kpi-card">
-            <div class="kpi-header">
-              <span class="kpi-label">{{ t('dashboard.kpi.inventoryTurnover') }}</span>
-            </div>
-            <div class="kpi-value">4.2</div>
-            <div class="kpi-goal">{{ t('dashboard.kpi.goal') }}: 4.5 (-6.67%)</div>
-            <div class="kpi-progress-bar">
-              <div class="kpi-progress" style="width: 93.33%"></div>
-            </div>
+      <div class="stats-grid">
+        <div v-for="kpi in kpiCards" :key="kpi.key" class="stat-card">
+          <span class="stat-label">{{ kpi.label }}</span>
+          <span class="stat-value" :class="{ compact: kpi.value.length > 11 }">{{ kpi.value }}</span>
+          <div class="kpi-meta">
+            <span class="kpi-target">{{ t('dashboard.kpi.goal') }} <span class="num">{{ kpi.target }}</span></span>
+            <span class="num" :class="kpi.favorable ? 'delta-pos' : 'delta-neg'">{{ kpi.delta }}</span>
           </div>
-
-          <div class="kpi-card">
-            <div class="kpi-header">
-              <span class="kpi-label">{{ t('dashboard.kpi.ordersFulfilled') }}</span>
-            </div>
-            <div class="kpi-value">{{ ordersData.fulfilled }}</div>
-            <div class="kpi-goal">{{ t('dashboard.kpi.goal') }}: {{ ordersData.goal }} ({{ calculatePercentage(ordersData.fulfilled, ordersData.goal) }}%)</div>
-            <div class="kpi-progress-bar">
-              <div class="kpi-progress" :style="{ width: calculatePercentage(ordersData.fulfilled, ordersData.goal) + '%' }"></div>
-            </div>
-          </div>
-
-          <div class="kpi-card">
-            <div class="kpi-header">
-              <span class="kpi-label">{{ t('dashboard.kpi.orderFillRate') }}</span>
-            </div>
-            <div class="kpi-value">{{ fillRate }}%</div>
-            <div class="kpi-goal">{{ t('dashboard.kpi.goal') }}: 95% ({{ fillRate - 95 > 0 ? '+' : '' }}{{ (fillRate - 95).toFixed(2) }}%)</div>
-            <div class="kpi-progress-bar">
-              <div class="kpi-progress success" :style="{ width: (fillRate / 95 * 100) + '%' }"></div>
-            </div>
-          </div>
-
-          <div class="kpi-card">
-            <div class="kpi-header">
-              <span class="kpi-label">{{ t(selectedPeriod === 'all' ? 'dashboard.kpi.revenueYTD' : 'dashboard.kpi.revenueMTD') }}</span>
-            </div>
-            <div class="kpi-value">{{ formatCurrency(Math.round(summary.total_orders_value), selectedCurrency) }}</div>
-            <div class="kpi-goal">{{ t('dashboard.kpi.goal') }}: {{ formatCurrency(revenueGoal, selectedCurrency) }} ({{ summary.total_orders_value > revenueGoal ? '+' : '' }}{{ ((summary.total_orders_value / revenueGoal - 1) * 100).toFixed(1) }}%)</div>
-            <div class="kpi-progress-bar">
-              <div class="kpi-progress" :style="{ width: Math.min((summary.total_orders_value / revenueGoal * 100), 100) + '%' }"></div>
-            </div>
-          </div>
-
-          <div class="kpi-card">
-            <div class="kpi-header">
-              <span class="kpi-label">{{ t('dashboard.kpi.avgProcessingTime') }}</span>
-            </div>
-            <div class="kpi-value">2.8</div>
-            <div class="kpi-goal">{{ t('dashboard.kpi.goal') }}: 3.0 (-6.67%)</div>
-            <div class="kpi-progress-bar">
-              <div class="kpi-progress success" style="width: 93.33%"></div>
-            </div>
-          </div>
+          <div class="meter"><div class="meter-fill" :style="{ width: kpi.fill + '%' }"></div></div>
         </div>
       </div>
 
-      <!-- Summary Section -->
-      <div class="summary-section">
-        <h3 class="section-title">{{ t('dashboard.summary.title') }}</h3>
-      </div>
-
-      <!-- Charts Grid -->
       <div class="charts-grid">
-        <!-- Order Health Dashboard -->
-        <div class="card chart-card">
+        <!-- Order pipeline -->
+        <div class="card flush">
           <div class="card-header">
             <h3 class="card-title">{{ t('dashboard.orderHealth.title') }}</h3>
+            <span class="header-meta"><span class="num">{{ orderHealthMetrics.totalOrders }}</span> {{ t('dashboard.orderHealth.totalOrders') }}</span>
           </div>
-          <div class="chart-content">
-            <div class="order-health-container">
-              <!-- Left: Donut Chart -->
-              <div class="order-health-chart">
-                <svg viewBox="0 0 200 200" class="donut-svg-compact">
-                  <circle cx="100" cy="100" r="65" fill="none" stroke="var(--border)" stroke-width="25"/>
-                  <circle cx="100" cy="100" r="65" fill="none" stroke="var(--success)" stroke-width="25"
-                    :stroke-dasharray="`${getCircleSegment(statusData.delivered)} 408`"
-                    stroke-dashoffset="0" transform="rotate(-90 100 100)"/>
-                  <circle cx="100" cy="100" r="65" fill="none" stroke="var(--accent-bright)" stroke-width="25"
-                    :stroke-dasharray="`${getCircleSegment(statusData.shipped)} 408`"
-                    :stroke-dashoffset="`-${getCircleSegment(statusData.delivered)}`"
-                    transform="rotate(-90 100 100)"/>
-                  <circle cx="100" cy="100" r="65" fill="none" stroke="var(--warning)" stroke-width="25"
-                    :stroke-dasharray="`${getCircleSegment(statusData.processing)} 408`"
-                    :stroke-dashoffset="`-${getCircleSegment(statusData.delivered) + getCircleSegment(statusData.shipped)}`"
-                    transform="rotate(-90 100 100)"/>
-                  <circle cx="100" cy="100" r="65" fill="none" stroke="var(--danger)" stroke-width="25"
-                    :stroke-dasharray="`${getCircleSegment(statusData.backordered)} 408`"
-                    :stroke-dashoffset="`-${getCircleSegment(statusData.delivered) + getCircleSegment(statusData.shipped) + getCircleSegment(statusData.processing)}`"
-                    transform="rotate(-90 100 100)"/>
-                  <text x="100" y="90" text-anchor="middle" class="donut-center-label">{{ t('dashboard.orderHealth.total') }}</text>
-                  <text x="100" y="120" text-anchor="middle" class="donut-center-value">{{ orderHealthMetrics.totalOrders }}</text>
-                </svg>
-                <div class="donut-legend-compact">
-                  <div class="legend-item-compact"><span class="legend-dot" style="background: var(--success)"></span>{{ t('status.delivered') }}</div>
-                  <div class="legend-item-compact"><span class="legend-dot" style="background: var(--accent-bright)"></span>{{ t('status.shipped') }}</div>
-                  <div class="legend-item-compact"><span class="legend-dot" style="background: var(--warning)"></span>{{ t('status.processing') }}</div>
-                  <div class="legend-item-compact"><span class="legend-dot" style="background: var(--danger)"></span>{{ t('status.backordered') }}</div>
-                </div>
+          <div class="card-body pipeline">
+            <div class="stacked-bar" role="img" :aria-label="pipelineAriaLabel">
+              <div
+                v-for="seg in pipeline"
+                :key="seg.key"
+                class="stacked-seg"
+                :style="{ width: seg.share + '%', background: seg.color }"
+              ></div>
+            </div>
+            <div class="legend">
+              <div v-for="seg in pipeline" :key="seg.key" class="legend-row">
+                <span class="legend-swatch" :style="{ background: seg.color }"></span>
+                <span>{{ seg.label }}</span>
+                <span class="num legend-count">{{ seg.count }}</span>
+                <span class="num legend-share">{{ Math.round(seg.share) }}%</span>
               </div>
-
-              <!-- Right: Health Metrics -->
-              <div class="order-health-metrics">
-                <div class="health-metric">
-                  <div class="health-metric-label">{{ t('dashboard.orderHealth.revenue') }}</div>
-                  <div class="health-metric-value">{{ formatCurrency(orderHealthMetrics.totalValue, selectedCurrency) }}</div>
-                </div>
-                <div class="health-metric">
-                  <div class="health-metric-label">{{ t('dashboard.orderHealth.avgOrderValue') }}</div>
-                  <div class="health-metric-value">{{ formatCurrency(orderHealthMetrics.avgOrderValue, selectedCurrency) }}</div>
-                </div>
-                <div class="health-metric">
-                  <div class="health-metric-label">{{ t('dashboard.orderHealth.onTimeRate') }}</div>
-                  <div class="health-metric-value" :class="{ 'metric-good': orderHealthMetrics.onTimeRate >= 90, 'metric-warning': orderHealthMetrics.onTimeRate < 90 && orderHealthMetrics.onTimeRate >= 75, 'metric-bad': orderHealthMetrics.onTimeRate < 75 }">
-                    {{ orderHealthMetrics.onTimeRate.toFixed(1) }}%
-                  </div>
-                </div>
-                <div class="health-metric">
-                  <div class="health-metric-label">{{ t('dashboard.orderHealth.avgFulfillmentDays') }}</div>
-                  <div class="health-metric-value">{{ orderHealthMetrics.avgFulfillmentDays.toFixed(1) }}</div>
-                </div>
+            </div>
+            <div class="health-metrics">
+              <div class="health-metric">
+                <span class="health-metric-label">{{ t('dashboard.orderHealth.revenue') }}</span>
+                <span class="num health-metric-value">{{ formatCurrency(orderHealthMetrics.totalValue, selectedCurrency) }}</span>
+              </div>
+              <div class="health-metric">
+                <span class="health-metric-label">{{ t('dashboard.orderHealth.avgOrderValue') }}</span>
+                <span class="num health-metric-value">{{ formatCurrency(orderHealthMetrics.avgOrderValue, selectedCurrency) }}</span>
+              </div>
+              <div class="health-metric">
+                <span class="health-metric-label">{{ t('dashboard.orderHealth.onTimeRate') }}</span>
+                <span
+                  class="num health-metric-value"
+                  :class="{ 'metric-good': orderHealthMetrics.onTimeRate >= 90, 'metric-bad': orderHealthMetrics.onTimeRate < 75 }"
+                >{{ orderHealthMetrics.onTimeRate.toFixed(1) }}%</span>
+              </div>
+              <div class="health-metric">
+                <span class="health-metric-label">{{ t('dashboard.orderHealth.avgFulfillmentDays') }}</span>
+                <span class="num health-metric-value">{{ orderHealthMetrics.avgFulfillmentDays.toFixed(1) }}</span>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Inventory by Category -->
-        <div class="card chart-card">
+        <div class="card flush">
           <div class="card-header">
             <h3 class="card-title">{{ t('dashboard.inventoryValue.title') }}</h3>
+            <span class="header-meta"><span class="num">{{ formatCurrency(totalCategoryValue, selectedCurrency) }}</span> {{ t('dashboard.stockOnHand') }}</span>
           </div>
-          <div class="chart-content">
-            <div class="horizontal-bar-chart" v-if="categoryData.length > 0">
-              <div v-for="cat in categoryData" :key="cat.name" class="h-bar-item">
-                <div class="h-bar-label">{{ translateCategory(cat.name) }}</div>
-                <div class="h-bar-container">
-                  <div class="h-bar" :style="{ width: (cat.value / maxCategoryValue * 100) + '%', background: cat.color }">
-                    <span class="h-bar-value">{{ formatCompactCurrency(cat.value, selectedCurrency) }}</span>
-                  </div>
-                </div>
+          <div v-if="sortedCategories.length > 0" class="card-body categories">
+            <div v-for="cat in sortedCategories" :key="cat.name" class="cat-row">
+              <span class="cat-label">{{ translateCategory(cat.name) }}</span>
+              <div class="cat-track">
+                <div class="cat-fill" :style="{ width: (cat.value / maxCategoryValue * 100) + '%' }"></div>
               </div>
+              <span class="num cat-value">{{ formatCurrency(cat.value, selectedCurrency) }}</span>
             </div>
-            <div v-else class="no-data">{{ t('dashboard.inventoryShortages.noData') }}</div>
           </div>
+          <div v-else class="no-data">{{ t('dashboard.inventoryShortages.noData') }}</div>
         </div>
 
         <!-- Inventory Shortages -->
-        <div class="card chart-card full-width">
+        <div id="shortages" class="card flush full-width">
           <div class="card-header">
-            <h3 class="card-title">{{ t('dashboard.inventoryShortages.title') }} ({{ backlogItems.length }})</h3>
+            <h3 class="card-title">{{ t('dashboard.inventoryShortages.title') }} <span class="num count-muted">{{ backlogItems.length }}</span></h3>
+            <span class="header-meta">{{ t('dashboard.inventoryShortages.subtitle') }}</span>
           </div>
           <div v-if="backlogItems.length === 0" class="no-backlog">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="success-icon">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd" />
-            </svg>
             <p class="no-backlog-text">{{ t('dashboard.inventoryShortages.noShortages') }}</p>
           </div>
           <div v-else class="table-container">
-            <table>
+            <table class="shortages-table">
               <thead>
                 <tr>
                   <th>{{ t('dashboard.inventoryShortages.orderId') }}</th>
-                  <th>{{ t('dashboard.inventoryShortages.sku') }}</th>
                   <th>{{ t('dashboard.inventoryShortages.itemName') }}</th>
-                  <th>{{ t('dashboard.inventoryShortages.quantityNeeded') }}</th>
-                  <th>{{ t('dashboard.inventoryShortages.quantityAvailable') }}</th>
-                  <th>{{ t('dashboard.inventoryShortages.shortage') }}</th>
-                  <th>{{ t('dashboard.inventoryShortages.daysDelayed') }}</th>
+                  <th>{{ t('dashboard.inventoryShortages.coverage') }}</th>
+                  <th class="num">{{ t('dashboard.inventoryShortages.shortage') }}</th>
+                  <th class="num">{{ t('dashboard.inventoryShortages.daysDelayed') }}</th>
                   <th>{{ t('dashboard.inventoryShortages.priority') }}</th>
-                  <th>Actions</th>
+                  <th><span class="sr-only">Actions</span></th>
                 </tr>
               </thead>
               <tbody>
@@ -197,38 +128,40 @@
                   @keydown.enter.self.prevent="showBacklogDetail(item)"
                   @keydown.space.self.prevent="showBacklogDetail(item)"
                 >
-                  <td><strong>{{ item.order_id }}</strong></td>
-                  <td><strong>{{ item.item_sku }}</strong></td>
-                  <td>{{ translateProductName(item.item_name) }}</td>
-                  <td>{{ item.quantity_needed }}</td>
-                  <td>{{ item.quantity_available }}</td>
+                  <td class="num order-id">{{ item.order_id }}</td>
                   <td>
-                    <span class="badge danger">
-                      {{ Math.abs(item.quantity_needed - item.quantity_available) }} {{ t('dashboard.inventoryShortages.unitsShort') }}
-                    </span>
+                    <div class="item-stack">
+                      <span class="item-name">{{ translateProductName(item.item_name) }}</span>
+                      <span class="num item-sku">{{ item.item_sku }}</span>
+                    </div>
                   </td>
                   <td>
-                    <span :style="{ color: item.days_delayed > 7 ? 'var(--danger)' : 'var(--warning)', fontWeight: 600 }">
-                      {{ item.days_delayed }} {{ t('dashboard.inventoryShortages.days') }}
-                    </span>
+                    <div class="coverage">
+                      <div class="coverage-track">
+                        <div class="coverage-fill" :style="{ width: getCoveragePercent(item) + '%' }"></div>
+                      </div>
+                      <span class="num coverage-text">{{ item.quantity_available.toLocaleString() }} / {{ item.quantity_needed.toLocaleString() }}</span>
+                    </div>
                   </td>
+                  <td class="num short">&minus;{{ Math.abs(item.quantity_needed - item.quantity_available).toLocaleString() }}</td>
+                  <td class="num strong">{{ item.days_delayed }} {{ t('dashboard.inventoryShortages.days') }}</td>
                   <td>
                     <span :class="['badge', item.priority]">
                       {{ translatePriority(item.priority) }}
                     </span>
                   </td>
-                  <td>
+                  <td class="action-cell">
                     <button
                       v-if="!item.purchase_order_id"
                       @click.stop="openPOModal(item)"
-                      class="po-button create"
+                      class="btn btn-sm"
                     >
                       Create PO
                     </button>
                     <button
                       v-else
                       @click.stop="viewPO(item)"
-                      class="po-button view"
+                      class="btn btn-sm"
                     >
                       View PO
                     </button>
@@ -240,19 +173,19 @@
         </div>
 
         <!-- Top Products Table -->
-        <div class="card chart-card full-width">
+        <div class="card flush full-width">
           <div class="card-header">
             <h3 class="card-title">{{ t('dashboard.topProducts.title') }}</h3>
           </div>
           <div class="table-container">
-            <table>
+            <table class="products-table">
               <thead>
                 <tr>
                   <th>{{ t('dashboard.topProducts.product') }}</th>
                   <th>{{ t('dashboard.topProducts.sku') }}</th>
                   <th>{{ t('dashboard.topProducts.category') }}</th>
-                  <th>{{ t('dashboard.topProducts.unitsOrdered') }}</th>
-                  <th>{{ t('dashboard.topProducts.revenue') }}</th>
+                  <th class="num">{{ t('dashboard.topProducts.unitsOrdered') }}</th>
+                  <th class="num">{{ t('dashboard.topProducts.revenue') }}</th>
                   <th>{{ t('dashboard.topProducts.firstOrder') }}</th>
                   <th>{{ t('dashboard.topProducts.stockStatus') }}</th>
                 </tr>
@@ -267,11 +200,11 @@
                   @keydown.enter.self.prevent="showProductDetail(item)"
                   @keydown.space.self.prevent="showProductDetail(item)"
                 >
-                  <td><strong>{{ translateProductName(item.name) }}</strong></td>
-                  <td>{{ item.sku }}</td>
+                  <td class="item-name">{{ translateProductName(item.name) }}</td>
+                  <td class="num item-sku">{{ item.sku }}</td>
                   <td>{{ translateCategory(item.category) }}</td>
-                  <td>{{ item.unitsOrdered }}</td>
-                  <td><strong>{{ formatCurrency(item.revenue, selectedCurrency) }}</strong></td>
+                  <td class="num">{{ item.unitsOrdered.toLocaleString() }}</td>
+                  <td class="num strong">{{ formatCurrency(item.revenue, selectedCurrency) }}</td>
                   <td>{{ formatDate(item.firstOrderDate) }}</td>
                   <td>
                     <span :class="['badge', getStockBadge(item.stockLevel)]">
@@ -594,8 +527,95 @@ export default {
              statusData.value.processing + statusData.value.backordered
     })
 
-    const getCircleSegment = (value) => {
-      return totalOrders.value > 0 ? (value / totalOrders.value) * 440 : 0
+    const kpiCards = computed(() => {
+      const signed = (n, digits, suffix) => `${n > 0 ? '+' : n < 0 ? '−' : ''}${Math.abs(n).toFixed(digits)}${suffix}`
+      const pctOfGoal = (value, goal) => (goal > 0 ? (value / goal) * 100 : 0)
+      const fulfilledPct = pctOfGoal(ordersData.value.fulfilled, ordersData.value.goal)
+      const revenue = summary.value.total_orders_value || 0
+      const revenuePct = pctOfGoal(revenue, revenueGoal.value)
+      return [
+        {
+          key: 'turnover',
+          label: t('dashboard.kpi.inventoryTurnover'),
+          value: '4.2',
+          target: '4.5',
+          delta: signed(4.2 / 4.5 * 100 - 100, 1, '%'),
+          favorable: false,
+          fill: 93.3
+        },
+        {
+          key: 'fulfilled',
+          label: t('dashboard.kpi.ordersFulfilled'),
+          value: String(ordersData.value.fulfilled),
+          target: String(ordersData.value.goal),
+          delta: signed(fulfilledPct - 100, 1, '%'),
+          favorable: fulfilledPct >= 100,
+          fill: Math.min(fulfilledPct, 100)
+        },
+        {
+          key: 'fillRate',
+          label: t('dashboard.kpi.orderFillRate'),
+          value: `${fillRate.value}%`,
+          target: '95%',
+          delta: signed(fillRate.value - 95, 1, ' pts'),
+          favorable: fillRate.value >= 95,
+          fill: Math.min(fillRate.value / 95 * 100, 100)
+        },
+        {
+          key: 'revenue',
+          label: t(selectedPeriod.value === 'all' ? 'dashboard.kpi.revenueYTD' : 'dashboard.kpi.revenueMTD'),
+          value: formatCurrency(Math.round(revenue), currentCurrency.value),
+          target: formatCurrency(revenueGoal.value, currentCurrency.value),
+          delta: signed(revenuePct - 100, 1, '%'),
+          favorable: revenuePct >= 100,
+          fill: Math.min(revenuePct, 100)
+        },
+        {
+          key: 'processing',
+          label: t('dashboard.kpi.avgProcessingTime'),
+          value: '2.8',
+          target: '3.0',
+          delta: signed(2.8 - 3.0, 1, ''),
+          // Lower is better for processing time
+          favorable: 2.8 <= 3.0,
+          fill: 93.3
+        }
+      ]
+    })
+
+    const PIPELINE_COLORS = {
+      delivered: 'var(--accent)',
+      shipped: 'var(--accent-2)',
+      processing: 'var(--seg-gray)',
+      backordered: 'var(--dot-crit)'
+    }
+
+    const pipeline = computed(() => {
+      const total = totalOrders.value
+      return ['delivered', 'shipped', 'processing', 'backordered'].map(key => ({
+        key,
+        label: t(`status.${key}`),
+        count: statusData.value[key],
+        share: total > 0 ? (statusData.value[key] / total) * 100 : 0,
+        color: PIPELINE_COLORS[key]
+      }))
+    })
+
+    const pipelineAriaLabel = computed(() =>
+      pipeline.value.map(seg => `${seg.count} ${seg.label}`).join(', ')
+    )
+
+    const sortedCategories = computed(() =>
+      categoryData.value.slice().sort((a, b) => b.value - a.value)
+    )
+
+    const totalCategoryValue = computed(() =>
+      categoryData.value.reduce((sum, cat) => sum + cat.value, 0)
+    )
+
+    const getCoveragePercent = (item) => {
+      if (!item.quantity_needed) return 100
+      return Math.min(Math.max(item.quantity_available / item.quantity_needed, 0), 1) * 100
     }
 
     const getStockBadge = (level) => {
@@ -700,7 +720,12 @@ export default {
       topProducts,
       backlogItems,
       calculatePercentage,
-      getCircleSegment,
+      kpiCards,
+      pipeline,
+      pipelineAriaLabel,
+      sortedCategories,
+      totalCategoryValue,
+      getCoveragePercent,
       getStockBadge,
       translateCategory,
       translateStockLevel,
@@ -732,545 +757,306 @@ export default {
 </script>
 
 <style scoped>
-.page-header {
+.header-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.review-link {
+  font-size: 13.5px;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.kpi-meta {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 1rem;
+  gap: 8px;
+  font-size: 12.5px;
 }
 
-.header-meta {
-  font-size: 0.813rem;
-  color: var(--text-muted);
+.kpi-target {
+  color: var(--muted);
 }
 
-.kpi-section {
-  margin-bottom: 1.5rem;
-}
-
-.section-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--text-soft);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: 1rem;
-}
-
-.kpi-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1rem;
-}
-
-.kpi-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 1rem;
-}
-
-.kpi-header {
-  margin-bottom: 0.75rem;
-}
-
-.kpi-label {
-  font-size: 0.813rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
-}
-
-.kpi-value {
-  font-size: 2rem;
-  font-weight: 700;
+.kpi-target .num {
   color: var(--text);
-  margin-bottom: 0.5rem;
-  letter-spacing: -0.025em;
 }
 
-.kpi-goal {
-  font-size: 0.813rem;
-  color: var(--text-muted);
-  margin-bottom: 0.75rem;
+/* Yen totals run to 14 characters; scale down with the cell so they never spill into the neighbour */
+.stat-card {
+  container-type: inline-size;
 }
 
-.kpi-progress-bar {
-  width: 100%;
-  height: 6px;
-  background: var(--surface-subtle);
-  border-radius: 3px;
+.stat-value.compact {
+  font-size: clamp(16px, 11cqw, 21px);
+}
+
+.delta-pos {
+  color: var(--pos);
+}
+
+.delta-neg {
+  color: var(--neg);
+}
+
+.meter {
+  height: 3px;
+  margin-top: 4px;
+  background: var(--sunken);
+  border-radius: 2px;
   overflow: hidden;
 }
 
-.kpi-progress {
-  height: 100%;
-  background: var(--accent-bright);
-  border-radius: 3px;
-  transition: width 0.6s ease;
-}
-
-.kpi-progress.success {
-  background: var(--success);
+.meter-fill {
+  height: 3px;
+  background: var(--ink);
 }
 
 .charts-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.25rem;
-  margin-bottom: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr));
+  gap: 16px;
+  align-items: start;
 }
 
-.chart-card.full-width {
+/* min-width: 0 lets wide tables scroll inside their card instead of stretching the grid track */
+.charts-grid .card {
+  margin-bottom: 0;
+  min-width: 0;
+}
+
+.full-width {
   grid-column: 1 / -1;
 }
 
-.chart-content {
-  padding: 1rem;
+.header-meta {
+  font-size: 12.5px;
+  color: var(--muted);
 }
 
-.donut-chart {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 3rem;
+.count-muted {
+  font-weight: 400;
+  color: var(--muted);
 }
 
-.donut-svg {
-  width: 200px;
-  height: 200px;
+.card-body {
+  padding: 18px;
 }
 
-.donut-legend {
+.pipeline {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 16px;
 }
 
-.legend-item {
+.stacked-bar {
   display: flex;
-  align-items: center;
-  gap: 0.625rem;
-  font-size: 0.875rem;
-  color: var(--text-soft);
+  gap: 2px;
+  height: 10px;
+  border-radius: 3px;
+  overflow: hidden;
 }
 
-.legend-dot {
-  width: 10px;
-  height: 10px;
+.stacked-seg {
+  min-width: 0;
+}
+
+.legend {
+  display: flex;
+  flex-direction: column;
+}
+
+.legend-row {
+  display: grid;
+  grid-template-columns: 16px 1fr 56px 56px;
+  align-items: center;
+  height: 32px;
+  border-top: 1px solid var(--line);
+  font-size: 13.5px;
+}
+
+.legend-swatch {
+  width: 8px;
+  height: 8px;
   border-radius: 2px;
 }
 
-/* Order Health Dashboard Styles */
-.order-health-container {
+.legend-count {
+  text-align: right;
+  color: var(--ink);
+}
+
+.legend-share {
+  text-align: right;
+  color: var(--muted);
+}
+
+.health-metrics {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
-  align-items: center;
-  padding: 1rem;
-  min-height: 240px;
-}
-
-.order-health-chart {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  padding: 0 1rem;
-}
-
-.donut-svg-compact {
-  width: 200px;
-  height: 200px;
-}
-
-.donut-center-label {
-  font-size: 12px;
-  fill: var(--text-muted);
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.donut-center-value {
-  font-size: 36px;
-  fill: var(--text);
-  font-weight: 700;
-}
-
-.donut-legend-compact {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.625rem 1.25rem;
-}
-
-.legend-item-compact {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  color: var(--text-soft);
-  font-weight: 500;
-}
-
-.order-health-metrics {
-  display: flex;
-  flex-direction: column;
-  gap: 1.25rem;
-  justify-content: center;
-  align-items: center;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
 }
 
 .health-metric {
   display: flex;
   flex-direction: column;
-  gap: 0.375rem;
-  text-align: center;
-  width: 100%;
+  gap: 2px;
 }
 
 .health-metric-label {
-  font-size: 0.688rem;
-  color: var(--text-muted);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-size: 12.5px;
+  color: var(--muted);
 }
 
 .health-metric-value {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: var(--text);
-  letter-spacing: -0.025em;
+  font-size: 17px;
+  color: var(--ink);
 }
 
-.metric-good {
-  color: var(--success);
+.health-metric-value.metric-good {
+  color: var(--pos);
 }
 
-.metric-warning {
-  color: var(--warning);
+.health-metric-value.metric-bad {
+  color: var(--neg);
 }
 
-.metric-bad {
-  color: var(--danger);
-}
-
-.horizontal-bar-chart {
+.categories {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  padding: 0 1rem;
+  padding-top: 10px;
 }
 
-.h-bar-item {
-  display: flex;
+.cat-row {
+  display: grid;
+  grid-template-columns: 116px 1fr 100px;
   align-items: center;
-  gap: 1rem;
+  gap: 14px;
+  height: 46px;
+  font-size: 13.5px;
 }
 
-.h-bar-label {
-  width: 120px;
-  min-width: 120px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-soft);
-  flex-shrink: 0;
+.cat-label {
+  color: var(--text);
 }
 
-.h-bar-container {
-  flex: 1;
-  height: 32px;
-  background: var(--surface-muted);
-  border-radius: 6px;
+.cat-track {
+  height: 8px;
+  background: var(--sunken);
+  border-radius: 2px;
   overflow: hidden;
 }
 
-.h-bar {
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  padding-right: 0.75rem;
-  transition: width 0.6s ease;
-}
-
-.h-bar-value {
-  font-size: 0.813rem;
-  font-weight: 700;
-  color: white;
-}
-
-.line-chart {
-  display: flex;
-  gap: 1.5rem;
-  height: 280px;
-}
-
-.line-y-axis {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding-right: 1rem;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  border-right: 1px solid var(--border);
-}
-
-.line-chart-area {
-  flex: 1;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-around;
-  gap: 0.5rem;
-}
-
-.line-bar-group {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex: 1;
-  max-width: 80px;
-  gap: 0.5rem;
-}
-
-.line-bar-wrapper {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: center;
-}
-
-.line-bar {
-  width: 100%;
-  max-width: 60px;
-  min-height: 8px;
-  background: var(--accent-bright);
-  border-radius: 6px 6px 0 0;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  box-shadow: 0 2px 4px var(--accent-shadow);
-}
-
-.line-bar.empty-bar {
-  background: var(--border);
-  box-shadow: none;
-  min-height: 4px;
-}
-
-.line-bar:hover {
+.cat-fill {
+  height: 8px;
   background: var(--accent);
-  transform: scaleY(1.05);
+  border-radius: 2px;
 }
 
-.line-bar.empty-bar:hover {
-  background: var(--border-strong);
-  transform: none;
+.cat-value {
+  text-align: right;
+  color: var(--ink);
 }
 
-.line-bar-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  white-space: nowrap;
-}
-
-.no-data {
-  padding: 2rem;
-  text-align: center;
-  color: var(--text-muted);
-  font-size: 0.875rem;
-}
-
+.no-data,
 .no-backlog {
-  padding: 3rem;
+  padding: 24px 18px;
   text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-}
-
-.success-icon {
-  width: 48px;
-  height: 48px;
-  color: var(--success);
+  color: var(--muted);
 }
 
 .no-backlog-text {
-  font-size: 1.125rem;
-  color: var(--success);
-  font-weight: 600;
-  margin: 0;
+  font-size: 13.5px;
+}
+
+.shortages-table {
+  min-width: 820px;
+}
+
+.products-table {
+  min-width: 760px;
 }
 
 .clickable-row {
   cursor: pointer;
-  transition: background-color 0.15s ease;
 }
 
-.clickable-row:hover {
-  background: var(--accent-soft) !important;
+.order-id,
+.item-sku {
+  font-size: 12.5px;
+  color: var(--muted);
 }
 
-/* Tasks Card Styles */
-.tasks-card {
-  margin-bottom: 2rem;
-}
-
-.tasks-content {
-  padding: 1.5rem;
-}
-
-.task-input-container {
-  display: flex;
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-.task-input {
-  flex: 1;
-  padding: 0.75rem;
-  border: 2px solid var(--border);
-  border-radius: 8px;
-  font-size: 0.95rem;
-  transition: border-color 0.2s ease;
-}
-
-.task-input:focus {
-  outline: none;
-  border-color: #667eea;
-}
-
-.task-add-btn {
-  padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.2s ease, opacity 0.2s ease;
-}
-
-.task-add-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-}
-
-.task-add-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.no-tasks {
-  text-align: center;
-  padding: 2rem;
-  color: var(--text-muted);
-  font-style: italic;
-}
-
-.tasks-list {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.task-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem;
-  background: var(--surface-muted);
-  border-radius: 8px;
-  border: 2px solid transparent;
-  transition: all 0.2s ease;
-}
-
-.task-item:hover {
-  border-color: var(--border);
-  background: var(--surface);
-}
-
-.task-item.completed {
-  opacity: 0.6;
-}
-
-.task-item.completed .task-text {
-  text-decoration: line-through;
-  color: var(--text-muted);
-}
-
-.task-checkbox {
-  width: 20px;
-  height: 20px;
-  cursor: pointer;
-  accent-color: #667eea;
-}
-
-.task-text {
-  flex: 1;
-  cursor: pointer;
-  user-select: none;
-  color: var(--text);
-  font-size: 0.95rem;
-}
-
-.task-delete-btn {
-  width: 28px;
-  height: 28px;
-  background: var(--danger);
-  color: var(--on-accent);
-  border: none;
-  border-radius: 6px;
-  font-size: 1.25rem;
-  line-height: 1;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-}
-
-.task-delete-btn:hover {
-  background: var(--danger-strong);
-  transform: scale(1.1);
-}
-
-.po-button {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.813rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
+td.order-id,
+td.item-sku {
+  text-align: left;
   white-space: nowrap;
 }
 
-.po-button.create {
-  background: var(--accent-bright);
-  color: var(--on-accent);
+.item-stack {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.3;
 }
 
-.po-button.create:hover {
-  background: var(--accent);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px var(--accent-shadow);
+.item-name {
+  color: var(--ink);
 }
 
-.po-button.view {
-  background: var(--btn-secondary);
-  color: white;
+.item-stack .item-sku {
+  font-size: 12px;
 }
 
-.po-button.view:hover {
-  background: var(--btn-secondary-hover);
-  transform: translateY(-1px);
-  box-shadow: 0 2px 4px var(--slate-shadow);
+.coverage {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.coverage-track {
+  width: 88px;
+  height: 4px;
+  background: var(--sunken);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.coverage-fill {
+  height: 4px;
+  background: var(--ink);
+}
+
+.coverage-text {
+  font-size: 12.5px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+td.short {
+  color: var(--neg);
+}
+
+td.strong {
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.action-cell {
+  text-align: right;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 </style>

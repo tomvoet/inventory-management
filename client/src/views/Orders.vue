@@ -46,7 +46,7 @@
                 <th class="col-date">{{ t('orders.submittedOrders.submittedDate') }}</th>
                 <th class="col-date">{{ t('orders.submittedOrders.leadTime') }}</th>
                 <th class="col-date">{{ t('orders.submittedOrders.expectedDelivery') }}</th>
-                <th class="col-value">{{ t('orders.submittedOrders.total') }}</th>
+                <th class="col-value num">{{ t('orders.submittedOrders.total') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -68,7 +68,7 @@
                 <td class="col-date">{{ formatDate(order.submitted_date) }}</td>
                 <td class="col-date">{{ t('orders.submittedOrders.leadTimeDays', { count: order.lead_time_days }) }}</td>
                 <td class="col-date">{{ formatDate(order.expected_delivery) }}</td>
-                <td class="col-value"><strong>{{ formatCurrencyWithDecimals(order.total_cost, currentCurrency, 2) }}</strong></td>
+                <td class="col-value num"><strong>{{ formatCurrencyWithDecimals(order.total_cost, currentCurrency, 2) }}</strong></td>
               </tr>
             </tbody>
           </table>
@@ -89,7 +89,7 @@
                 <th class="col-status">{{ t('orders.table.status') }}</th>
                 <th class="col-date">{{ t('orders.table.orderDate') }}</th>
                 <th class="col-date">{{ t('orders.table.expectedDelivery') }}</th>
-                <th class="col-value">{{ t('orders.table.totalValue') }}</th>
+                <th class="col-value num">{{ t('orders.table.totalValue') }}</th>
               </tr>
             </thead>
             <tbody>
@@ -116,7 +116,7 @@
                 </td>
                 <td class="col-date">{{ formatDate(order.order_date) }}</td>
                 <td class="col-date">{{ formatDate(order.expected_delivery) }}</td>
-                <td class="col-value"><strong>{{ formatCurrencyWithDecimals(order.total_value, currentCurrency, 2) }}</strong></td>
+                <td class="col-value num"><strong>{{ formatCurrencyWithDecimals(order.total_value, currentCurrency, 2) }}</strong></td>
               </tr>
             </tbody>
           </table>

@@ -1,62 +1,73 @@
 <template>
   <div class="app">
-    <header class="top-nav">
-      <div class="nav-container">
-        <div class="logo">
-          <h1>{{ t('nav.companyName') }}</h1>
-          <span class="subtitle">{{ t('nav.subtitle') }}</span>
-        </div>
-        <nav class="nav-tabs">
-          <router-link to="/" :class="{ active: $route.path === '/' }">
-            {{ t('nav.overview') }}
-          </router-link>
-          <router-link to="/inventory" :class="{ active: $route.path === '/inventory' }">
-            {{ t('nav.inventory') }}
-          </router-link>
-          <router-link to="/orders" :class="{ active: $route.path === '/orders' }">
-            {{ t('nav.orders') }}
-          </router-link>
-          <router-link to="/spending" :class="{ active: $route.path === '/spending' }">
-            {{ t('nav.finance') }}
-          </router-link>
-          <router-link to="/demand" :class="{ active: $route.path === '/demand' }">
-            {{ t('nav.demandForecast') }}
-          </router-link>
-          <router-link to="/restocking" :class="{ active: $route.path === '/restocking' }">
-            {{ t('nav.restocking') }}
-          </router-link>
-          <router-link to="/reports" :class="{ active: $route.path === '/reports' }">
-            {{ t('nav.reports') }}
-          </router-link>
-        </nav>
-        <div class="nav-actions">
-          <button
-            type="button"
-            class="theme-toggle"
-            :aria-label="themeLabel"
-            :title="themeLabel"
-            @click="toggleTheme"
-          >
-            <svg v-if="isDark" width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              <circle cx="10" cy="10" r="3.5" stroke="currentColor" stroke-width="1.5"/>
-              <path d="M10 2.5V4.5M10 15.5V17.5M2.5 10H4.5M15.5 10H17.5M4.7 4.7L6.1 6.1M13.9 13.9L15.3 15.3M4.7 15.3L6.1 13.9M13.9 6.1L15.3 4.7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-            </svg>
-            <svg v-else width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-              <path d="M16.5 11.5A6.5 6.5 0 1 1 8.5 3.5A5.5 5.5 0 0 0 16.5 11.5Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
-            </svg>
-          </button>
-          <LanguageSwitcher />
-          <ProfileMenu
-            @show-profile-details="showProfileDetails = true"
-            @show-tasks="openTasks"
-          />
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true">CC</div>
+        <div class="brand-text">
+          <span class="brand-name">{{ t('nav.companyName') }}</span>
+          <span class="brand-sub">{{ t('nav.brandSub') }}</span>
         </div>
       </div>
-    </header>
-    <FilterBar />
-    <main class="main-content">
-      <router-view />
-    </main>
+
+      <nav class="nav" aria-label="Main">
+        <span class="nav-group">{{ t('nav.groupOperations') }}</span>
+        <router-link to="/" class="nav-item">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="2.5" width="4.5" height="4.5" rx="1"/><rect x="9" y="2.5" width="4.5" height="4.5" rx="1"/><rect x="2.5" y="9" width="4.5" height="4.5" rx="1"/><rect x="9" y="9" width="4.5" height="4.5" rx="1"/></svg>
+          <span class="nav-label">{{ t('nav.overview') }}</span>
+        </router-link>
+        <router-link to="/inventory" class="nav-item">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.8 14 5v6l-6 3.2L2 11V5z"/><path d="M2 5l6 3.2L14 5"/><path d="M8 8.2v6"/></svg>
+          <span class="nav-label">{{ t('nav.inventory') }}</span>
+        </router-link>
+        <router-link to="/orders" class="nav-item">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 4h8"/><path d="M5.5 8h8"/><path d="M5.5 12h8"/><path d="M2.5 4h.01"/><path d="M2.5 8h.01"/><path d="M2.5 12h.01"/></svg>
+          <span class="nav-label">{{ t('nav.orders') }}</span>
+        </router-link>
+        <router-link to="/restocking" class="nav-item">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 6.5A5.5 5.5 0 0 0 3 5"/><path d="M2.5 2v3h3"/><path d="M2.5 9.5A5.5 5.5 0 0 0 13 11"/><path d="M13.5 14v-3h-3"/></svg>
+          <span class="nav-label">{{ t('nav.restocking') }}</span>
+        </router-link>
+
+        <span class="nav-group nav-group-second">{{ t('nav.groupPlanning') }}</span>
+        <router-link to="/demand" class="nav-item">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12l4-4 3 2.5L14 4.5"/><path d="M10.5 4.5H14V8"/></svg>
+          <span class="nav-label">{{ t('nav.demandForecast') }}</span>
+        </router-link>
+        <router-link to="/spending" class="nav-item">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.5v13"/><path d="M11.5 4.5H6.75a2 2 0 0 0 0 4h2.5a2 2 0 0 1 0 4H4.5"/></svg>
+          <span class="nav-label">{{ t('nav.finance') }}</span>
+        </router-link>
+        <router-link to="/reports" class="nav-item">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 1.5h5l3 3v10H4z"/><path d="M9 1.5v3h3"/><path d="M6 9h4"/><path d="M6 11.5h4"/></svg>
+          <span class="nav-label">{{ t('nav.reports') }}</span>
+        </router-link>
+      </nav>
+
+      <div class="sidebar-footer">
+        <button
+          type="button"
+          class="nav-item theme-toggle"
+          :aria-label="themeLabel"
+          :title="themeLabel"
+          @click="toggleTheme"
+        >
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6"/><path d="M8 2a6 6 0 0 0 0 12z" fill="currentColor"/></svg>
+          <span class="nav-label">{{ t(isDark ? 'theme.lightMode' : 'theme.darkMode') }}</span>
+        </button>
+        <LanguageSwitcher />
+        <ProfileMenu
+          @show-profile-details="showProfileDetails = true"
+          @show-tasks="openTasks"
+        />
+      </div>
+    </aside>
+
+    <div class="content">
+      <FilterBar />
+      <main class="main-content">
+        <router-view />
+      </main>
+    </div>
 
     <ProfileDetailsModal
       :is-open="showProfileDetails"
@@ -187,10 +198,10 @@ export default {
       }
     }
 
-    // Tabs scroll horizontally on narrow widths, so keep the active one visible after navigation
+    // Nav scrolls horizontally on narrow widths, so keep the active one visible after navigation
     const scrollActiveTabIntoView = () => {
       nextTick(() => {
-        document.querySelector('.nav-tabs a.active')?.scrollIntoView({ inline: 'nearest', block: 'nearest' })
+        document.querySelector('.nav a.router-link-exact-active')?.scrollIntoView({ inline: 'nearest', block: 'nearest' })
       })
     }
     watch(() => route.path, scrollActiveTabIntoView)
@@ -221,145 +232,125 @@ export default {
 <style>
 :root {
   color-scheme: light;
-  --bg: #f8fafc;
+  --bg: #f7f7f8;
   --surface: #ffffff;
-  --surface-muted: #f8fafc;
-  --surface-subtle: #f1f5f9;
-  --border: #e2e8f0;
-  --border-strong: #cbd5e1;
-  --text: #0f172a;
-  --text-body: #1e293b;
-  --text-secondary: #334155;
-  --text-soft: #475569;
-  --text-muted: #64748b;
-  --text-faint: #94a3b8;
-  --chart-ink: #0f172a;
-  --solid: #0f172a;
-  --solid-hover: #1e293b;
-  --on-accent: #ffffff;
-  --btn-secondary: #64748b;
-  --btn-secondary-hover: #475569;
-
-  --accent: #2563eb;
-  --accent-deep: #1e40af;
-  --accent-bright: #3b82f6;
-  --accent-light: #60a5fa;
-  --accent-soft: #eff6ff;
-  --info-bg: #dbeafe;
-  --info-border: #bfdbfe;
-  --info-text: #1e40af;
-
-  --success: #10b981;
-  --success-strong: #059669;
-  --success-bg: #d1fae5;
-  --success-soft: #f0fdf4;
-  --success-border: #a7f3d0;
-  --success-text: #065f46;
-
-  --warning: #f59e0b;
-  --warning-strong: #ea580c;
-  --warning-bg: #fed7aa;
-  --warning-tint: #fef3c7;
-  --warning-soft: #fffbeb;
-  --warning-border: #fed7aa;
-  --warning-text: #92400e;
-
-  --danger: #ef4444;
-  --danger-strong: #dc2626;
-  --danger-bg: #fecaca;
-  --danger-tint: #fee2e2;
-  --danger-soft: #fef2f2;
-  --danger-border: #fecaca;
-  --danger-text: #991b1b;
-
-  --purple: #8b5cf6;
-  --purple-soft: #f5f3ff;
-  --purple-border: #c4b5fd;
-  --indigo-bg: #e0e7ff;
-  --indigo-text: #3730a3;
-
-  --overlay: rgba(0, 0, 0, 0.5);
-  --shadow-xs: rgba(0, 0, 0, 0.05);
-  --shadow-sm: rgba(0, 0, 0, 0.06);
-  --shadow-md: rgba(0, 0, 0, 0.1);
-  --shadow-lg: rgba(0, 0, 0, 0.15);
-  --shadow-xl: rgba(0, 0, 0, 0.3);
-  --focus-ring: rgba(59, 130, 246, 0.1);
-  --accent-shadow: rgba(59, 130, 246, 0.3);
-  --accent-shadow-sm: rgba(37, 99, 235, 0.2);
-  --slate-shadow: rgba(100, 116, 139, 0.3);
+  --sunken: #f1f1f3;
+  --line: #e5e5e8;
+  --line-strong: #d4d4d8;
+  --ink: #09090b;
+  --text: #27272a;
+  --muted: #64646c;
+  --accent: #3346ff;
+  --accent-2: #a3adff;
+  --pos: #137a3a;
+  --neg: #c43d1c;
+  --dot-ok: #22a559;
+  --dot-warn: #e59a0c;
+  --dot-crit: #e5484d;
+  --seg-gray: #b4b4bb;
+  --on-ink: #ffffff;
+  --overlay: rgba(9, 9, 11, 0.5);
 }
 
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #0f172a;
-  --surface: #1e293b;
-  --surface-muted: #172236;
-  --surface-subtle: #273449;
-  --border: #334155;
-  --border-strong: #475569;
-  --text: #f1f5f9;
-  --text-body: #e2e8f0;
-  --text-secondary: #cbd5e1;
-  --text-soft: #94a3b8;
-  --text-muted: #94a3b8;
-  --text-faint: #64748b;
-  --chart-ink: #e2e8f0;
-  --solid: #2563eb;
-  --solid-hover: #3b82f6;
-  --on-accent: #0f172a;
-  --btn-secondary: #475569;
-  --btn-secondary-hover: #64748b;
+  --bg: #09090b;
+  --surface: #111113;
+  --sunken: #1a1a1d;
+  --line: #232327;
+  --line-strong: #34343a;
+  --ink: #fafafa;
+  --text: #d4d4d8;
+  --muted: #9b9ba4;
+  --accent: #7f8cff;
+  --accent-2: #414c9f;
+  --pos: #4ade80;
+  --neg: #ff7a5c;
+  --dot-ok: #3fcf73;
+  --dot-warn: #f2b136;
+  --dot-crit: #ff6369;
+  --seg-gray: #52525b;
+  --on-ink: #09090b;
+  --overlay: rgba(0, 0, 0, 0.7);
+}
 
-  --accent: #3b82f6;
-  --accent-deep: #2563eb;
-  --accent-bright: #60a5fa;
-  --accent-light: #93c5fd;
-  --accent-soft: rgba(59, 130, 246, 0.16);
-  --info-bg: rgba(59, 130, 246, 0.2);
-  --info-border: rgba(96, 165, 250, 0.4);
-  --info-text: #93c5fd;
+/*
+  Legacy names used by not-yet-redesigned components, aliased to the new tokens.
+  Declared once on :root; var() resolves per element, so they follow the active theme.
+*/
+:root {
+  --surface-muted: var(--sunken);
+  --surface-subtle: var(--sunken);
+  --border: var(--line);
+  --border-strong: var(--line-strong);
+  --text-body: var(--text);
+  --text-secondary: var(--text);
+  --text-soft: var(--muted);
+  --text-muted: var(--muted);
+  --text-faint: var(--muted);
+  --chart-ink: var(--ink);
+  --solid: var(--ink);
+  --solid-hover: var(--text);
+  --on-accent: var(--on-ink);
+  --btn-secondary: var(--muted);
+  --btn-secondary-hover: var(--text);
 
-  --success: #34d399;
-  --success-strong: #34d399;
-  --success-bg: rgba(16, 185, 129, 0.2);
-  --success-soft: rgba(16, 185, 129, 0.1);
-  --success-border: rgba(52, 211, 153, 0.4);
-  --success-text: #6ee7b7;
+  --accent-deep: var(--accent);
+  --accent-bright: var(--accent);
+  --accent-light: var(--accent-2);
+  --accent-soft: color-mix(in srgb, var(--accent) 10%, transparent);
+  --info-bg: color-mix(in srgb, var(--accent) 14%, transparent);
+  --info-border: color-mix(in srgb, var(--accent) 35%, transparent);
+  --info-text: var(--accent);
 
-  --warning: #fbbf24;
-  --warning-strong: #fb923c;
-  --warning-bg: rgba(245, 158, 11, 0.2);
-  --warning-tint: rgba(245, 158, 11, 0.16);
-  --warning-soft: rgba(245, 158, 11, 0.1);
-  --warning-border: rgba(251, 191, 36, 0.4);
-  --warning-text: #fcd34d;
+  --success: var(--dot-ok);
+  --success-strong: var(--pos);
+  --success-bg: color-mix(in srgb, var(--dot-ok) 18%, transparent);
+  --success-soft: color-mix(in srgb, var(--dot-ok) 8%, transparent);
+  --success-border: color-mix(in srgb, var(--dot-ok) 35%, transparent);
+  --success-text: var(--pos);
 
-  --danger: #f87171;
-  --danger-strong: #f87171;
-  --danger-bg: rgba(239, 68, 68, 0.2);
-  --danger-tint: rgba(239, 68, 68, 0.16);
-  --danger-soft: rgba(239, 68, 68, 0.1);
-  --danger-border: rgba(248, 113, 113, 0.4);
-  --danger-text: #fca5a5;
+  --warning: var(--dot-warn);
+  --warning-strong: color-mix(in srgb, var(--dot-warn) 70%, var(--ink));
+  --warning-bg: color-mix(in srgb, var(--dot-warn) 20%, transparent);
+  --warning-tint: color-mix(in srgb, var(--dot-warn) 16%, transparent);
+  --warning-soft: color-mix(in srgb, var(--dot-warn) 8%, transparent);
+  --warning-border: color-mix(in srgb, var(--dot-warn) 40%, transparent);
+  --warning-text: color-mix(in srgb, var(--dot-warn) 60%, var(--ink));
 
-  --purple: #a78bfa;
-  --purple-soft: rgba(139, 92, 246, 0.12);
-  --purple-border: rgba(167, 139, 250, 0.4);
-  --indigo-bg: rgba(99, 102, 241, 0.22);
-  --indigo-text: #a5b4fc;
+  --danger: var(--dot-crit);
+  --danger-strong: var(--neg);
+  --danger-bg: color-mix(in srgb, var(--dot-crit) 16%, transparent);
+  --danger-tint: color-mix(in srgb, var(--dot-crit) 14%, transparent);
+  --danger-soft: color-mix(in srgb, var(--dot-crit) 8%, transparent);
+  --danger-border: color-mix(in srgb, var(--dot-crit) 35%, transparent);
+  --danger-text: var(--neg);
 
-  --overlay: rgba(2, 6, 23, 0.7);
+  --purple: var(--accent);
+  --purple-soft: var(--accent-soft);
+  --purple-border: var(--info-border);
+  --indigo-bg: var(--info-bg);
+  --indigo-text: var(--accent);
+
+  --shadow-xs: rgba(0, 0, 0, 0.04);
+  --shadow-sm: rgba(0, 0, 0, 0.06);
+  --shadow-md: rgba(0, 0, 0, 0.12);
+  --shadow-lg: rgba(0, 0, 0, 0.18);
+  --shadow-xl: rgba(0, 0, 0, 0.3);
+  --focus-ring: color-mix(in srgb, var(--accent) 22%, transparent);
+  --accent-shadow: color-mix(in srgb, var(--accent) 30%, transparent);
+  --accent-shadow-sm: color-mix(in srgb, var(--accent) 20%, transparent);
+  --slate-shadow: rgba(0, 0, 0, 0.2);
+}
+
+:root[data-theme="dark"] {
   --shadow-xs: rgba(0, 0, 0, 0.3);
   --shadow-sm: rgba(0, 0, 0, 0.35);
-  --shadow-md: rgba(0, 0, 0, 0.4);
-  --shadow-lg: rgba(0, 0, 0, 0.5);
-  --shadow-xl: rgba(0, 0, 0, 0.6);
-  --focus-ring: rgba(96, 165, 250, 0.25);
-  --accent-shadow: rgba(59, 130, 246, 0.4);
-  --accent-shadow-sm: rgba(59, 130, 246, 0.35);
-  --slate-shadow: rgba(0, 0, 0, 0.4);
+  --shadow-md: rgba(0, 0, 0, 0.5);
+  --shadow-lg: rgba(0, 0, 0, 0.6);
+  --shadow-xl: rgba(0, 0, 0, 0.7);
 }
+
 * {
   margin: 0;
   padding: 0;
@@ -367,113 +358,142 @@ export default {
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-family: 'Geist', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Hiragino Sans', 'Noto Sans JP', sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
   background: var(--bg);
-  color: var(--text-body);
+  color: var(--text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+.num {
+  font-family: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Layout shell */
 .app {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 232px minmax(0, 1fr);
   min-height: 100vh;
 }
 
-.top-nav {
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  box-shadow: 0 1px 3px 0 var(--shadow-xs);
+.sidebar {
   position: sticky;
   top: 0;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 16px 12px;
+  background: var(--surface);
+  border-right: 1px solid var(--line);
   z-index: 100;
 }
 
-.nav-container {
-  max-width: 1600px;
-  margin: 0 auto;
+.brand {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0 1.5rem;
-  height: 70px;
-}
-
-/* Title stacked over the subtitle: roughly half the width of the old single line */
-.logo {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 0.125rem;
-  flex-shrink: 0;
-  white-space: nowrap;
-}
-
-.logo h1 {
-  font-size: 1.125rem;
-  font-weight: 700;
-  line-height: 1.2;
-  color: var(--text);
-  letter-spacing: -0.025em;
-}
-
-.subtitle {
-  font-size: 0.688rem;
-  line-height: 1.2;
-  color: var(--text-muted);
-  font-weight: 400;
-}
-
-/* Tabs take the leftover space and scroll instead of squeezing the right-hand controls */
-.nav-tabs {
-  display: flex;
-  gap: 0.125rem;
-  flex: 1 1 0;
+  gap: 10px;
+  padding: 4px 8px;
   min-width: 0;
-  /* Not flex-end: overflowing tabs would spill left, where scrolling can't reach them */
-  justify-content: safe flex-end;
-  overflow-x: auto;
-  scrollbar-width: none;
 }
 
-.nav-tabs::-webkit-scrollbar {
-  display: none;
-}
-
-.nav-tabs a {
-  padding: 0.625rem 0.875rem;
-  color: var(--text-muted);
-  text-decoration: none;
-  font-weight: 500;
-  font-size: 0.938rem;
-  white-space: nowrap;
+.brand-mark {
+  width: 26px;
+  height: 26px;
   flex-shrink: 0;
   border-radius: 6px;
-  transition: all 0.2s ease;
-  position: relative;
+  background: var(--ink);
+  color: var(--on-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
 }
 
-.nav-tabs a:hover {
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.brand-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.brand-sub {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.2;
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.nav-group {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--muted);
+  padding: 0 8px 6px;
+}
+
+.nav-group-second {
+  padding-top: 16px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  height: 36px;
+  padding: 0 8px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
   color: var(--text);
-  background: var(--surface-subtle);
+  font: inherit;
+  font-size: 13.5px;
+  text-decoration: none;
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
 }
 
-.nav-tabs a.active {
-  color: var(--accent);
-  background: var(--accent-soft);
+.nav-item svg {
+  flex-shrink: 0;
 }
 
-.nav-tabs a.active::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: var(--accent);
+.nav-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.nav-tabs a:focus-visible {
+.nav-item:hover {
+  background: var(--sunken);
+  color: var(--ink);
+}
+
+.nav-item.router-link-exact-active {
+  background: var(--sunken);
+  color: var(--ink);
+  font-weight: 500;
+}
+
+.nav-item:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: -2px;
 }
@@ -484,135 +504,154 @@ body {
   outline-offset: -2px;
 }
 
-.nav-actions {
+.sidebar-footer {
+  position: relative;
+  margin-top: auto;
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  flex-shrink: 0;
+  flex-direction: column;
+  gap: 2px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
 }
 
-.theme-toggle {
+.content {
+  min-width: 0;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  flex-shrink: 0;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.theme-toggle:hover {
-  background: var(--surface-muted);
-  border-color: var(--border-strong);
-  color: var(--text);
-}
-
-.theme-toggle:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-@media (max-width: 1280px) {
-  .subtitle {
-    display: none;
-  }
-
-  .nav-container {
-    gap: 0.75rem;
-    padding: 0 1rem;
-  }
-
-  .nav-tabs a {
-    padding: 0.625rem 0.625rem;
-    font-size: 0.875rem;
-  }
-
-  .logo h1 {
-    font-size: 1.0625rem;
-  }
-}
-
-@media (max-width: 1100px) {
-  .top-nav .nav-container .profile-name,
-  .top-nav .nav-container .profile-button .chevron {
-    display: none;
-  }
-}
-
-@media (max-width: 720px) {
-  .logo h1 {
-    font-size: 1.125rem;
-  }
-
-  .top-nav .nav-container .language-label {
-    display: none;
-  }
+  flex-direction: column;
 }
 
 .main-content {
   flex: 1;
-  max-width: 1600px;
   width: 100%;
-  margin: 0 auto;
-  padding: 1.5rem 2rem;
+  max-width: 1312px;
+  padding: 28px 32px 48px;
 }
 
+@media (max-width: 900px) {
+  .app {
+    display: block;
+  }
+
+  .sidebar {
+    position: static;
+    height: auto;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    padding: 8px 12px 0;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .brand {
+    flex: 1 1 0;
+  }
+
+  .brand-sub {
+    display: none;
+  }
+
+  .sidebar-footer {
+    order: 2;
+    margin: 0 0 0 auto;
+    flex-direction: row;
+    align-items: center;
+    border-top: 0;
+    padding-top: 0;
+    gap: 2px;
+  }
+
+  .sidebar-footer .nav-item {
+    width: auto;
+  }
+
+  .sidebar-footer .nav-label {
+    display: none;
+  }
+
+  .nav {
+    order: 3;
+    flex: 1 0 100%;
+    flex-direction: row;
+    gap: 2px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    padding-bottom: 8px;
+  }
+
+  .nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav-group {
+    display: none;
+  }
+
+  .nav .nav-item {
+    width: auto;
+    flex-shrink: 0;
+    padding: 0 12px;
+  }
+
+  .main-content {
+    padding: 20px 16px 40px;
+  }
+}
+
+/* Page header */
 .page-header {
-  margin-bottom: 1.5rem;
+  margin-bottom: 20px;
 }
 
 .page-header h2 {
-  font-size: 1.875rem;
-  font-weight: 700;
-  color: var(--text);
-  margin-bottom: 0.375rem;
-  letter-spacing: -0.025em;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  line-height: 1.3;
 }
 
 .page-header p {
-  color: var(--text-muted);
-  font-size: 0.938rem;
+  margin-top: 4px;
+  font-size: 13.5px;
+  color: var(--muted);
 }
 
+/* Stat strip: cells joined by a 1px gap showing the line colour */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 1.25rem;
-  margin-bottom: 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 20px;
 }
 
 .stat-card {
   background: var(--surface);
-  padding: 1.25rem;
-  border-radius: 10px;
-  border: 1px solid var(--border);
-  transition: all 0.2s ease;
-}
-
-.stat-card:hover {
-  border-color: var(--border-strong);
-  box-shadow: 0 4px 12px var(--shadow-sm);
+  padding: 16px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .stat-label {
-  color: var(--text-muted);
-  font-size: 0.875rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 0.625rem;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 400;
 }
 
 .stat-value {
-  font-size: 2.25rem;
-  font-weight: 700;
-  color: var(--text);
-  letter-spacing: -0.025em;
+  font-family: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-variant-numeric: tabular-nums;
+  font-size: 26px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+  line-height: 1.15;
 }
 
 .stat-card.warning .stat-value {
@@ -620,146 +659,211 @@ body {
 }
 
 .stat-card.success .stat-value {
-  color: var(--success-strong);
+  color: var(--pos);
 }
 
 .stat-card.danger .stat-value {
-  color: var(--danger-strong);
+  color: var(--neg);
 }
 
-.stat-card.info .stat-value {
-  color: var(--accent);
-}
-
+/* Cards: header and table-container run edge to edge; other direct children get inner padding unless the card is .flush */
 .card {
   background: var(--surface);
-  border-radius: 10px;
-  padding: 1.25rem;
-  border: 1px solid var(--border);
-  margin-bottom: 1.25rem;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+  margin-bottom: 16px;
+}
+
+.card:not(.flush) > :not(.card-header):not(.table-container) {
+  margin-left: 18px;
+  margin-right: 18px;
+}
+
+.card:not(.flush) > :not(.card-header):not(.table-container):last-child {
+  margin-bottom: 18px;
+}
+
+.card:not(.flush) > .card-header + :not(.table-container) {
+  margin-top: 16px;
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
-  padding-bottom: 0.875rem;
-  border-bottom: 1px solid var(--border);
+  gap: 12px;
+  padding: 12px 18px;
+  border-bottom: 1px solid var(--line);
 }
 
 .card-title {
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: var(--text);
-  letter-spacing: -0.025em;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink);
+  letter-spacing: 0;
 }
 
 .table-container {
   overflow-x: auto;
 }
 
+/* Tables */
 table {
   width: 100%;
   border-collapse: collapse;
 }
 
-thead {
-  background: var(--surface-muted);
-  border-top: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-}
-
 th {
   text-align: left;
-  padding: 0.5rem 0.75rem;
-  font-weight: 600;
-  color: var(--text-soft);
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  padding: 10px 12px;
+  font-weight: 500;
+  color: var(--muted);
+  font-size: 12.5px;
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
 }
 
 td {
-  padding: 0.5rem 0.75rem;
-  border-top: 1px solid var(--surface-subtle);
-  color: var(--text-secondary);
-  font-size: 0.875rem;
+  padding: 0 12px;
+  height: 48px;
+  border-bottom: 1px solid var(--line);
+  color: var(--text);
+  font-size: 13.5px;
 }
 
-tbody tr {
-  transition: background-color 0.15s ease;
+th:first-child,
+td:first-child {
+  padding-left: 18px;
 }
 
-tbody tr:hover {
-  background: var(--surface-muted);
+th:last-child,
+td:last-child {
+  padding-right: 18px;
 }
 
+tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+tbody tr:hover td {
+  background: var(--sunken);
+}
+
+th.num,
+td.num {
+  text-align: right;
+}
+
+/* Headers stay in the UI font; only cell values are monospaced */
+th.num {
+  font-family: inherit;
+}
+
+td strong {
+  font-weight: 500;
+  color: var(--ink);
+}
+
+/* Status badge: dot + plain text; variant only sets the dot colour */
 .badge {
-  display: inline-block;
-  padding: 0.313rem 0.75rem;
-  border-radius: 6px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
+  --badge-dot: var(--seg-gray);
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--text);
+  font-size: inherit;
+  font-weight: 400;
+  white-space: nowrap;
 }
 
-.badge.success {
-  background: var(--success-bg);
-  color: var(--success-text);
+.badge::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: var(--badge-dot);
 }
 
-.badge.warning {
-  background: var(--warning-bg);
-  color: var(--warning-text);
-}
-
-.badge.danger {
-  background: var(--danger-bg);
-  color: var(--danger-text);
-}
-
-.badge.info {
-  background: var(--info-bg);
-  color: var(--info-text);
-}
-
+.badge.success,
 .badge.increasing {
-  background: var(--success-bg);
-  color: var(--success-text);
+  --badge-dot: var(--dot-ok);
 }
 
-.badge.decreasing {
-  background: var(--danger-bg);
-  color: var(--danger-text);
+.badge.warning,
+.badge.medium {
+  --badge-dot: var(--dot-warn);
+}
+
+.badge.danger,
+.badge.decreasing,
+.badge.high {
+  --badge-dot: var(--dot-crit);
+}
+
+.badge.info,
+.badge.low {
+  --badge-dot: var(--accent);
 }
 
 .badge.stable {
-  background: var(--indigo-bg);
-  color: var(--indigo-text);
+  --badge-dot: var(--seg-gray);
 }
 
-.badge.high {
-  background: var(--danger-bg);
-  color: var(--danger-text);
+/* Buttons */
+.btn,
+.btn-primary,
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 13.5px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+  color: var(--ink);
 }
 
-.badge.medium {
-  background: var(--warning-bg);
-  color: var(--warning-text);
+.btn:hover,
+.btn-secondary:hover {
+  border-color: var(--muted);
 }
 
-.badge.low {
-  background: var(--info-bg);
-  color: var(--info-text);
+.btn-primary {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: var(--on-ink);
+}
+
+.btn-primary:hover {
+  opacity: 0.88;
+}
+
+.btn-sm {
+  height: 32px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+a {
+  color: var(--accent);
+}
+
+a:hover {
+  color: var(--ink);
 }
 
 .loading {
   text-align: center;
   padding: 3rem;
-  color: var(--text-muted);
-  font-size: 0.938rem;
+  color: var(--muted);
+  font-size: 14px;
 }
 
 .error {
@@ -769,6 +873,6 @@ tbody tr:hover {
   padding: 1rem;
   border-radius: 8px;
   margin: 1rem 0;
-  font-size: 0.938rem;
+  font-size: 14px;
 }
 </style>

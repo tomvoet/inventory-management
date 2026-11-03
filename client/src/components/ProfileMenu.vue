@@ -8,17 +8,10 @@
       <div class="avatar">
         {{ getInitials(currentUser.name) }}
       </div>
-      <span class="profile-name">{{ currentUser.name }}</span>
-      <svg
-        class="chevron"
-        :class="{ 'chevron-open': isDropdownOpen }"
-        width="16"
-        height="16"
-        viewBox="0 0 16 16"
-        fill="none"
-      >
-        <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-      </svg>
+      <span class="profile-text">
+        <span class="profile-name">{{ currentUser.name }}</span>
+        <span class="profile-role">{{ currentUser.jobTitle }}</span>
+      </span>
     </button>
 
     <div v-if="isDropdownOpen" class="dropdown-menu">
@@ -123,66 +116,99 @@ const handleLogout = () => {
 .profile-button {
   display: flex;
   align-items: center;
-  gap: 0.625rem;
-  padding: 0.5rem 0.875rem;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
+  gap: 10px;
+  width: 100%;
+  height: 44px;
+  padding: 0 8px;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  font-family: inherit;
-  flex-shrink: 0;
-  white-space: nowrap;
+  font: inherit;
+  color: var(--ink);
+  text-align: left;
 }
 
 .profile-button:hover {
-  background: var(--surface-muted);
-  border-color: var(--border-strong);
+  background: var(--sunken);
+}
+
+.profile-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
 }
 
 .avatar {
-  width: 32px;
-  height: 32px;
-  min-width: 32px;
+  width: 24px;
+  height: 24px;
+  min-width: 24px;
   flex-shrink: 0;
-  aspect-ratio: 1;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
-  color: white;
+  background: var(--sunken);
+  border: 1px solid var(--line-strong);
+  color: var(--ink);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 600;
-  font-size: 0.75rem;
-  letter-spacing: 0.025em;
+  font-size: 10.5px;
+}
+
+.profile-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  min-width: 0;
 }
 
 .profile-name {
-  font-size: 0.875rem;
+  font-size: 13.5px;
   font-weight: 500;
-  color: var(--text);
+  color: var(--ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.chevron {
-  color: var(--text-muted);
-  transition: transform 0.2s ease;
+.profile-role {
+  font-size: 12px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.chevron-open {
-  transform: rotate(180deg);
-}
-
+/* Opens upward because the menu sits at the bottom of the sidebar */
 .dropdown-menu {
   position: absolute;
-  top: calc(100% + 0.5rem);
+  bottom: calc(100% + 4px);
+  left: 0;
   right: 0;
-  min-width: 280px;
   background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  box-shadow: 0 10px 25px var(--shadow-md);
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px var(--shadow-md);
   z-index: 1000;
   overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  .profile-button {
+    width: auto;
+    height: 36px;
+  }
+
+  .profile-text {
+    display: none;
+  }
+
+  .dropdown-menu {
+    bottom: auto;
+    top: calc(100% + 4px);
+    left: auto;
+    right: 0;
+    width: 260px;
+  }
 }
 
 .dropdown-header {
@@ -200,8 +226,8 @@ const handleLogout = () => {
   flex-shrink: 0;
   aspect-ratio: 1;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
-  color: white;
+  background: var(--ink);
+  color: var(--on-ink);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -277,8 +303,8 @@ const handleLogout = () => {
 
 .task-badge {
   margin-left: auto;
-  background: var(--accent);
-  color: white;
+  background: var(--ink);
+  color: var(--on-ink);
   font-size: 0.75rem;
   font-weight: 600;
   padding: 0.125rem 0.5rem;

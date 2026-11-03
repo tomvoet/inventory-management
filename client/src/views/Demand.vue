@@ -81,8 +81,8 @@
               <tr>
                 <th>{{ t('demand.table.sku') }}</th>
                 <th>{{ t('demand.table.itemName') }}</th>
-                <th>{{ t('demand.table.currentDemand') }}</th>
-                <th>{{ t('demand.table.forecastedDemand') }}</th>
+                <th class="num">{{ t('demand.table.currentDemand') }}</th>
+                <th class="num">{{ t('demand.table.forecastedDemand') }}</th>
                 <th>{{ t('demand.table.change') }}</th>
                 <th>{{ t('demand.table.trend') }}</th>
                 <th>{{ t('demand.table.period') }}</th>
@@ -92,8 +92,8 @@
               <tr v-for="forecast in forecasts" :key="forecast.id">
                 <td><strong>{{ forecast.item_sku }}</strong></td>
                 <td>{{ forecast.item_name }}</td>
-                <td>{{ forecast.current_demand }}</td>
-                <td><strong>{{ forecast.forecasted_demand }}</strong></td>
+                <td class="num">{{ forecast.current_demand }}</td>
+                <td class="num"><strong>{{ forecast.forecasted_demand }}</strong></td>
                 <td>
                   <span :style="{ color: getChangeColor(forecast) }">
                     {{ getChangePercent(forecast) }}%

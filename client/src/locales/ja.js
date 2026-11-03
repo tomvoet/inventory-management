@@ -9,18 +9,26 @@ export default {
     restocking: '補充発注',
     reports: 'レポート',
     companyName: '触媒コンポーネンツ',
-    subtitle: '在庫管理システム'
+    subtitle: '在庫管理システム',
+    brandSub: '在庫',
+    groupOperations: '業務',
+    groupPlanning: '計画'
   },
 
   // Theme
   theme: {
     switchToDark: 'ダークモードに切り替え',
-    switchToLight: 'ライトモードに切り替え'
+    switchToLight: 'ライトモードに切り替え',
+    darkMode: 'ダークモード',
+    lightMode: 'ライトモード'
   },
 
   // Dashboard
   dashboard: {
     title: '概要',
+    blockedOrders: '件の注文が在庫不足で停止中',
+    reviewShortages: '在庫不足を確認',
+    stockOnHand: '在庫',
     kpi: {
       title: '主要業績評価指標',
       inventoryTurnover: '在庫回転率',
@@ -52,6 +60,8 @@ export default {
     },
     inventoryShortages: {
       title: '在庫不足',
+      subtitle: '在庫が入荷するまで出荷できない注文',
+      coverage: '充足率',
       noShortages: '在庫不足なし - すべての注文を履行できます！',
       noData: '選択したフィルターのデータがありません',
       orderId: '注文ID',

@@ -47,10 +47,10 @@
                 <th>{{ t('backlog.columns.orderId') }}</th>
                 <th>{{ t('backlog.columns.sku') }}</th>
                 <th>{{ t('backlog.columns.itemName') }}</th>
-                <th>{{ t('backlog.columns.quantityNeeded') }}</th>
-                <th>{{ t('backlog.columns.quantityAvailable') }}</th>
-                <th>{{ t('backlog.columns.shortage') }}</th>
-                <th>{{ t('backlog.columns.daysDelayed') }}</th>
+                <th class="num">{{ t('backlog.columns.quantityNeeded') }}</th>
+                <th class="num">{{ t('backlog.columns.quantityAvailable') }}</th>
+                <th class="num">{{ t('backlog.columns.shortage') }}</th>
+                <th class="num">{{ t('backlog.columns.daysDelayed') }}</th>
                 <th>{{ t('backlog.columns.priority') }}</th>
               </tr>
             </thead>
@@ -59,8 +59,8 @@
                 <td><strong>{{ item.order_id }}</strong></td>
                 <td><strong>{{ item.item_sku }}</strong></td>
                 <td>{{ translateProductName(item.item_name) }}</td>
-                <td>{{ item.quantity_needed }}</td>
-                <td>{{ item.quantity_available }}</td>
+                <td class="num">{{ item.quantity_needed }}</td>
+                <td class="num">{{ item.quantity_available }}</td>
                 <td>
                   <span class="badge danger">
                     {{ t('backlog.unitsShort', { count: item.quantity_needed - item.quantity_available }) }}

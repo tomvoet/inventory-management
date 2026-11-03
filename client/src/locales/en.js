@@ -9,18 +9,26 @@ export default {
     restocking: 'Restocking',
     reports: 'Reports',
     companyName: 'Catalyst Components',
-    subtitle: 'Inventory Management System'
+    subtitle: 'Inventory Management System',
+    brandSub: 'Inventory',
+    groupOperations: 'Operations',
+    groupPlanning: 'Planning'
   },
 
   // Theme
   theme: {
     switchToDark: 'Switch to dark mode',
-    switchToLight: 'Switch to light mode'
+    switchToLight: 'Switch to light mode',
+    darkMode: 'Dark mode',
+    lightMode: 'Light mode'
   },
 
   // Dashboard
   dashboard: {
     title: 'Overview',
+    blockedOrders: 'orders blocked by shortages',
+    reviewShortages: 'Review shortages',
+    stockOnHand: 'on hand',
     kpi: {
       title: 'Key Performance Indicators',
       inventoryTurnover: 'Inventory Turnover Rate',
@@ -52,6 +60,8 @@ export default {
     },
     inventoryShortages: {
       title: 'Inventory Shortages',
+      subtitle: "Orders that can't ship until stock arrives",
+      coverage: 'Coverage',
       noShortages: 'No inventory shortages - all orders can be fulfilled!',
       noData: 'No inventory data for selected filters',
       orderId: 'Order ID',

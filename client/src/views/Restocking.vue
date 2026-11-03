@@ -79,9 +79,9 @@
                 <th>{{ t('restocking.table.sku') }}</th>
                 <th>{{ t('restocking.table.itemName') }}</th>
                 <th>{{ t('restocking.table.trend') }}</th>
-                <th>{{ t('restocking.table.quantity') }}</th>
-                <th>{{ t('restocking.table.unitCost') }}</th>
-                <th>{{ t('restocking.table.lineTotal') }}</th>
+                <th class="num">{{ t('restocking.table.quantity') }}</th>
+                <th class="num">{{ t('restocking.table.unitCost') }}</th>
+                <th class="num">{{ t('restocking.table.lineTotal') }}</th>
                 <th>{{ t('restocking.table.leadTime') }}</th>
               </tr>
             </thead>
@@ -92,9 +92,9 @@
                 <td>
                   <span :class="['badge', rec.trend]">{{ t(`trends.${rec.trend}`) }}</span>
                 </td>
-                <td>{{ rec.quantity }}</td>
-                <td>{{ formatCurrencyWithDecimals(rec.unit_cost, currentCurrency, 2) }}</td>
-                <td><strong>{{ formatCurrencyWithDecimals(rec.quantity * rec.unit_cost, currentCurrency, 2) }}</strong></td>
+                <td class="num">{{ rec.quantity }}</td>
+                <td class="num">{{ formatCurrencyWithDecimals(rec.unit_cost, currentCurrency, 2) }}</td>
+                <td class="num"><strong>{{ formatCurrencyWithDecimals(rec.quantity * rec.unit_cost, currentCurrency, 2) }}</strong></td>
                 <td>{{ t('restocking.days', { count: rec.lead_time_days }) }}</td>
               </tr>
             </tbody>

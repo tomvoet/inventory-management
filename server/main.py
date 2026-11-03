@@ -1,7 +1,9 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from datetime import date, timedelta
+from threading import Lock
 from typing import List, Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from mock_data import inventory_items, orders, demand_forecasts, backlog_items, spending_summary, monthly_spending, category_spending, recent_transactions, purchase_orders
 
 app = FastAPI(title="Factory Inventory Management System")
@@ -89,6 +91,8 @@ class DemandForecast(BaseModel):
     forecasted_demand: int
     trend: str
     period: str
+    unit_cost: float
+    lead_time_days: int
 
 class BacklogItem(BaseModel):
     id: str
@@ -119,6 +123,37 @@ class CreatePurchaseOrderRequest(BaseModel):
     unit_cost: float
     expected_delivery_date: str
     notes: Optional[str] = None
+
+class RestockItemRequest(BaseModel):
+    # Clients may send name/cost/lead time too; they're ignored in favour of the forecast data
+    item_sku: str
+    quantity: int = Field(gt=0)
+
+class CreateRestockOrderRequest(BaseModel):
+    budget: float = Field(ge=0)
+    items: List[RestockItemRequest]
+
+class RestockItem(BaseModel):
+    item_sku: str
+    item_name: str
+    quantity: int
+    unit_cost: float
+    lead_time_days: int
+
+class RestockOrder(BaseModel):
+    id: str
+    order_number: str
+    items: List[RestockItem]
+    total_cost: float
+    budget: float
+    status: str
+    submitted_date: str
+    lead_time_days: int
+    expected_delivery: str
+
+# Submitted restocking orders live only in memory and reset on server restart
+restocking_orders: List[dict] = []
+restocking_orders_lock = Lock()
 
 # API endpoints
 @app.get("/")
@@ -303,6 +338,63 @@ def get_monthly_trends():
     result = list(months.values())
     result.sort(key=lambda x: x['month'])
     return result
+
+@app.get("/api/restocking-orders", response_model=List[RestockOrder])
+def get_restocking_orders():
+    """Get submitted restocking orders, newest first"""
+    return list(reversed(restocking_orders))
+
+@app.post("/api/restocking-orders", response_model=RestockOrder, status_code=201)
+def create_restocking_order(request: CreateRestockOrderRequest):
+    """Submit a restocking order priced from the demand forecast data"""
+    if not request.items:
+        raise HTTPException(status_code=400, detail="Order must contain at least one item")
+
+    skus = [i.item_sku for i in request.items]
+    if len(skus) != len(set(skus)):
+        raise HTTPException(status_code=400, detail="Each SKU may appear only once per order")
+
+    forecasts_by_sku = {f["item_sku"]: f for f in demand_forecasts}
+    items = []
+    for requested in request.items:
+        forecast = forecasts_by_sku.get(requested.item_sku)
+        if not forecast:
+            raise HTTPException(status_code=400, detail=f"Unknown SKU {requested.item_sku}")
+        # Price from server data so a client can't under-report cost to fit the budget
+        items.append({
+            "item_sku": forecast["item_sku"],
+            "item_name": forecast["item_name"],
+            "quantity": requested.quantity,
+            "unit_cost": forecast["unit_cost"],
+            "lead_time_days": forecast["lead_time_days"],
+        })
+
+    total_cost = round(sum(i["quantity"] * i["unit_cost"] for i in items), 2)
+    if total_cost > request.budget:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Order total {total_cost:.2f} exceeds budget {request.budget:.2f}"
+        )
+
+    # The order can only arrive once its slowest item does
+    lead_time_days = max(i["lead_time_days"] for i in items)
+    today = date.today()
+    # Sync endpoints run in a threadpool; lock so concurrent POSTs can't share an order number
+    with restocking_orders_lock:
+        sequence = len(restocking_orders) + 1
+        order = {
+            "id": str(sequence),
+            "order_number": f"RST-{sequence:04d}",
+            "items": items,
+            "total_cost": total_cost,
+            "budget": request.budget,
+            "status": "Submitted",
+            "submitted_date": today.isoformat(),
+            "lead_time_days": lead_time_days,
+            "expected_delivery": (today + timedelta(days=lead_time_days)).isoformat(),
+        }
+        restocking_orders.append(order)
+    return order
 
 if __name__ == "__main__":
     import uvicorn

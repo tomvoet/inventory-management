@@ -6,8 +6,16 @@ export default {
     orders: 'Orders',
     finance: 'Finance',
     demandForecast: 'Demand Forecast',
+    restocking: 'Restocking',
+    reports: 'Reports',
     companyName: 'Catalyst Components',
     subtitle: 'Inventory Management System'
+  },
+
+  // Theme
+  theme: {
+    switchToDark: 'Switch to dark mode',
+    switchToLight: 'Switch to light mode'
   },
 
   // Dashboard
@@ -101,6 +109,37 @@ export default {
     }
   },
 
+  // Restocking
+  restocking: {
+    title: 'Restocking',
+    description: 'Plan a restocking order within budget, prioritized by demand trend',
+    budget: 'Budget',
+    budgetMax: 'Max: {amount}',
+    table: {
+      sku: 'SKU',
+      itemName: 'Item Name',
+      trend: 'Trend',
+      quantity: 'Qty',
+      unitCost: 'Unit Cost',
+      lineTotal: 'Line Total',
+      leadTime: 'Lead Time'
+    },
+    recommendations: 'Recommended Items',
+    totalCost: 'Total Cost',
+    remainingBudget: 'Remaining Budget',
+    maxLeadTime: 'Max Lead Time',
+    days: '{count} days',
+    placeOrder: 'Place Order',
+    submitting: 'Submitting...',
+    empty: 'The budget is too low to restock any item. Increase the budget to see recommendations.',
+    noCandidates: 'No items have forecasted demand above current demand.',
+    successTitle: 'Order {orderNumber} submitted',
+    successDetail: 'Expected delivery: {date}',
+    viewOrders: 'View in Orders',
+    submitFailed: 'Failed to submit restocking order',
+    loadFailed: 'Failed to load demand forecasts'
+  },
+
   // Orders
   orders: {
     title: 'Orders',
@@ -112,6 +151,18 @@ export default {
     onTimeDelivery: 'On-Time Delivery',
     itemsCount: '{count} items',
     quantity: 'Qty',
+    submittedOrders: {
+      title: 'Submitted Orders',
+      empty: 'No restocking orders have been submitted yet.',
+      leadTimeDays: '{count} days',
+      orderNumber: 'Order #',
+      items: 'Items',
+      submittedDate: 'Submitted',
+      leadTime: 'Lead Time',
+      expectedDelivery: 'Expected Delivery',
+      total: 'Total',
+      loadFailed: 'Failed to load submitted orders'
+    },
     table: {
       orderNumber: 'Order Number',
       orderId: 'Order ID',

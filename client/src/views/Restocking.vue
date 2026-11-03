@@ -8,10 +8,10 @@
     <div v-if="loading" class="loading">{{ t('common.loading') }}</div>
     <div v-else-if="error" class="error" role="alert">{{ error }}</div>
     <div v-else>
-      <div class="card budget-card">
+      <div class="card">
         <div class="card-header">
           <h3 class="card-title">{{ t('restocking.budget') }}</h3>
-          <span class="budget-max">{{ t('restocking.budgetMax', { amount: formatCurrency(maxBudget, currentCurrency) }) }}</span>
+          <span class="budget-max num">{{ t('restocking.budgetMax', { amount: formatCurrency(maxBudget, currentCurrency) }) }}</span>
         </div>
         <div class="budget-controls">
           <input
@@ -30,22 +30,22 @@
             min="0"
             :max="displayMax"
             :step="displayStep"
-            class="budget-input"
+            class="budget-input num"
             :aria-label="t('restocking.budget')"
           />
         </div>
       </div>
 
       <div class="stats-grid">
-        <div class="stat-card info">
+        <div class="stat-card">
           <div class="stat-label">{{ t('restocking.totalCost') }}</div>
           <div class="stat-value">{{ formatCurrencyWithDecimals(totalCost, currentCurrency, 2) }}</div>
         </div>
-        <div class="stat-card success">
+        <div class="stat-card">
           <div class="stat-label">{{ t('restocking.remainingBudget') }}</div>
           <div class="stat-value">{{ formatCurrencyWithDecimals(remainingBudget, currentCurrency, 2) }}</div>
         </div>
-        <div class="stat-card warning">
+        <div class="stat-card">
           <div class="stat-label">{{ t('restocking.maxLeadTime') }}</div>
           <div class="stat-value">{{ t('restocking.days', { count: maxLeadTime }) }}</div>
         </div>
@@ -53,7 +53,7 @@
 
       <div v-if="submitError" class="error" role="alert">{{ submitError }}</div>
       <div v-if="submittedOrder" class="card success-card" role="status">
-        <strong>{{ t('restocking.successTitle', { orderNumber: submittedOrder.order_number }) }}</strong>
+        <span class="badge success">{{ t('restocking.successTitle', { orderNumber: submittedOrder.order_number }) }}</span>
         <span>{{ t('restocking.successDetail', { date: submittedOrder.expected_delivery }) }}</span>
         <router-link to="/orders">{{ t('restocking.viewOrders') }}</router-link>
       </div>
@@ -63,39 +63,42 @@
           <h3 class="card-title">{{ t('restocking.recommendations') }} ({{ recommendations.length }})</h3>
           <button
             type="button"
-            class="place-order-btn"
+            class="btn btn-primary btn-sm"
             :disabled="recommendations.length === 0 || submitting || !!submittedOrder"
             @click="placeOrder"
           >
             {{ submitting ? t('restocking.submitting') : t('restocking.placeOrder') }}
           </button>
         </div>
-        <div v-if="candidates.length === 0" class="loading">{{ t('restocking.noCandidates') }}</div>
-        <div v-else-if="recommendations.length === 0" class="loading">{{ t('restocking.empty') }}</div>
+        <div v-if="candidates.length === 0" class="empty">{{ t('restocking.noCandidates') }}</div>
+        <div v-else-if="recommendations.length === 0" class="empty">{{ t('restocking.empty') }}</div>
         <div v-else class="table-container">
           <table>
             <thead>
               <tr>
-                <th>{{ t('restocking.table.sku') }}</th>
                 <th>{{ t('restocking.table.itemName') }}</th>
                 <th>{{ t('restocking.table.trend') }}</th>
-                <th>{{ t('restocking.table.quantity') }}</th>
-                <th>{{ t('restocking.table.unitCost') }}</th>
-                <th>{{ t('restocking.table.lineTotal') }}</th>
-                <th>{{ t('restocking.table.leadTime') }}</th>
+                <th class="num">{{ t('restocking.table.quantity') }}</th>
+                <th class="num">{{ t('restocking.table.unitCost') }}</th>
+                <th class="num">{{ t('restocking.table.lineTotal') }}</th>
+                <th class="num">{{ t('restocking.table.leadTime') }}</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="rec in recommendations" :key="rec.item_sku">
-                <td><strong>{{ rec.item_sku }}</strong></td>
-                <td>{{ translateProductName(rec.item_name) }}</td>
+                <td>
+                  <div class="item-cell">
+                    <span class="item-name">{{ translateProductName(rec.item_name) }}</span>
+                    <span class="num item-sku">{{ rec.item_sku }}</span>
+                  </div>
+                </td>
                 <td>
                   <span :class="['badge', rec.trend]">{{ t(`trends.${rec.trend}`) }}</span>
                 </td>
-                <td>{{ rec.quantity }}</td>
-                <td>{{ formatCurrencyWithDecimals(rec.unit_cost, currentCurrency, 2) }}</td>
-                <td><strong>{{ formatCurrencyWithDecimals(rec.quantity * rec.unit_cost, currentCurrency, 2) }}</strong></td>
-                <td>{{ t('restocking.days', { count: rec.lead_time_days }) }}</td>
+                <td class="num">{{ rec.quantity }}</td>
+                <td class="num">{{ formatCurrencyWithDecimals(rec.unit_cost, currentCurrency, 2) }}</td>
+                <td class="num line-total">{{ formatCurrencyWithDecimals(rec.quantity * rec.unit_cost, currentCurrency, 2) }}</td>
+                <td class="num">{{ t('restocking.days', { count: rec.lead_time_days }) }}</td>
               </tr>
             </tbody>
           </table>
@@ -256,72 +259,104 @@ export default {
 </script>
 
 <style scoped>
-.budget-card {
-  margin-bottom: 1.5rem;
-}
-
 .budget-max {
-  font-size: 0.875rem;
-  color: var(--text-muted);
+  font-size: 13px;
+  color: var(--muted);
 }
 
 .budget-controls {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0 1.5rem 1.5rem;
+  gap: 12px;
+  padding: 16px 18px 18px;
 }
 
 .budget-slider {
   flex: 1;
+  min-width: 0;
+  accent-color: var(--accent);
 }
 
 .budget-symbol {
-  color: var(--text-muted);
-  font-weight: 600;
+  color: var(--muted);
 }
 
 .budget-input {
   width: 140px;
-  padding: 0.5rem 0.75rem;
-  border: 1px solid var(--border);
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
   border-radius: 6px;
-  color: var(--text);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 13.5px;
+  text-align: right;
 }
 
-.place-order-btn {
-  padding: 0.5rem 1.25rem;
-  background: var(--solid);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-weight: 600;
-  cursor: pointer;
+.budget-input:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
 }
 
-.place-order-btn:hover:not(:disabled) {
-  background: var(--solid-hover);
-}
-
-.place-order-btn:disabled {
-  background: var(--border-strong);
+.btn:disabled {
+  opacity: 0.45;
   cursor: not-allowed;
+}
+
+.empty {
+  padding: 32px 18px;
+  text-align: center;
+  color: var(--muted);
 }
 
 .success-card {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 1rem;
-  padding: 1rem 1.5rem;
-  margin-bottom: 1.5rem;
-  background: var(--success-bg);
-  border-color: var(--success-border);
-  color: var(--success-text);
+  gap: 8px 16px;
+  padding: 12px 18px;
+  color: var(--text);
 }
 
 .success-card a {
   margin-left: auto;
-  color: var(--success-text);
-  font-weight: 600;
+}
+
+.item-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.item-name {
+  color: var(--ink);
+}
+
+.item-sku {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* Trend keys are lowercase; capitalize for display (no effect on Japanese) */
+.badge {
+  text-transform: capitalize;
+}
+
+.line-total {
+  color: var(--ink);
+}
+
+table {
+  min-width: 640px;
+}
+
+@media (max-width: 600px) {
+  .budget-controls {
+    flex-wrap: wrap;
+  }
+
+  .budget-slider {
+    flex: 1 0 100%;
+  }
 }
 </style>

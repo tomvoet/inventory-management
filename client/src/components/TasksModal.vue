@@ -43,7 +43,7 @@
                 </div>
 
                 <div class="form-group-btn">
-                  <button @click="handleAddTask" class="task-add-btn" :disabled="!newTask.title.trim() || !newTask.dueDate">
+                  <button type="button" @click="handleAddTask" class="btn-primary task-add-btn" :disabled="!newTask.title.trim() || !newTask.dueDate">
                     {{ t('tasks.addTask') }}
                   </button>
                 </div>
@@ -77,23 +77,23 @@
                     />
                     <label :for="`task-check-${task.id}`" class="task-title">{{ task.title }}</label>
                   </div>
-                  <button @click="$emit('delete-task', task.id)" class="task-delete-btn" :title="t('tasks.deleteTask')" :aria-label="t('tasks.deleteTask')">
-                    ×
+                  <button type="button" @click="$emit('delete-task', task.id)" class="task-delete-btn" :title="t('tasks.deleteTask')" :aria-label="t('tasks.deleteTask')">
+                    <svg width="14" height="14" viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="M15 5L5 15M5 5L15 15" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/></svg>
                   </button>
                 </div>
 
                 <div class="task-footer">
-                  <span class="priority-badge" :class="task.priority">
+                  <span class="badge" :class="task.priority">
                     {{ translatePriority(task.priority) }}
                   </span>
                   <div class="task-due-date">
-                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
                       <rect x="2" y="3" width="10" height="9" rx="1" stroke="currentColor" stroke-width="1.2"/>
                       <path d="M4.5 1.5V4.5M9.5 1.5V4.5M2 6H12" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
                     </svg>
                     {{ formatDueDate(task.dueDate) }}
                   </div>
-                  <span class="status-badge" :class="getStatusClass(task.dueDate, task.status)">
+                  <span class="badge task-status" :class="statusBadgeClass(task.dueDate, task.status)">
                     {{ getStatusText(task.dueDate, task.status) }}
                   </span>
                 </div>
@@ -102,7 +102,7 @@
           </div>
 
           <div class="modal-footer">
-            <button class="btn-secondary" @click="close">{{ t('profileDetails.close') }}</button>
+            <button type="button" class="btn-secondary" @click="close">{{ t('profileDetails.close') }}</button>
           </div>
   </BaseModal>
 </template>
@@ -204,6 +204,12 @@ export default {
       return 'upcoming'
     }
 
+    // Map task states onto the global badge dot colours
+    const statusBadgeClass = (dueDate, status) => {
+      const map = { completed: 'success', overdue: 'danger', urgent: 'warning', upcoming: 'info' }
+      return map[getStatusClass(dueDate, status)]
+    }
+
     const getStatusText = (dueDate, status) => {
       const isJapanese = currentLocale.value === 'ja'
 
@@ -232,6 +238,7 @@ export default {
       handleAddTask,
       formatDueDate,
       getStatusClass,
+      statusBadgeClass,
       getStatusText,
       translatePriority
     }
@@ -240,79 +247,47 @@ export default {
 </script>
 
 <style scoped>
-
-
-
-
-
-
-
 .modal-body {
-  padding: 2rem;
+  padding: 20px;
   overflow-y: auto;
   flex: 1;
 }
 
 .modal-footer {
-  padding: 1.5rem 2rem;
-  border-top: 2px solid var(--border);
+  padding: 12px 20px;
+  border-top: 1px solid var(--line);
   display: flex;
   justify-content: flex-end;
-  gap: 1rem;
+  gap: 8px;
 }
 
-.btn-secondary {
-  padding: 0.75rem 1.5rem;
-  background: var(--surface-subtle);
-  color: var(--text-soft);
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-secondary:hover {
-  background: var(--border);
-}
-
-/* Task Form */
 .task-error {
-  margin-bottom: 0.75rem;
-  padding: 0.625rem 0.875rem;
-  border: 1px solid var(--danger-border);
-  border-radius: 6px;
-  background: var(--danger-soft);
-  color: var(--danger-text);
-  font-size: 0.875rem;
+  margin-bottom: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--neg);
+  font-size: 13.5px;
 }
 
 .task-form {
-  background: var(--surface-muted);
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .form-row {
   display: flex;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.form-row:last-child {
-  margin-bottom: 0;
+  align-items: flex-end;
+  gap: 12px;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 6px;
   flex: 1;
-}
-
-.form-group.flex-1 {
-  flex: 1;
+  min-width: 0;
 }
 
 .form-group-btn {
@@ -321,101 +296,79 @@ export default {
 }
 
 label {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--text-soft);
+  font-size: 13px;
+  color: var(--muted);
 }
 
 .task-input,
 .task-select {
-  padding: 0.75rem;
-  border: 2px solid var(--border);
-  border-radius: 8px;
-  font-size: 0.95rem;
-  transition: border-color 0.2s ease;
-  font-family: inherit;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13.5px;
+  width: 100%;
+}
+
+.task-input::placeholder {
+  color: var(--muted);
 }
 
 .task-input:focus-visible,
 .task-select:focus-visible {
-  outline: none;
-  border-color: var(--accent-bright);
-  box-shadow: 0 0 0 3px var(--focus-ring);
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
 }
 
 .task-select {
   cursor: pointer;
-  background: var(--surface);
 }
 
 .task-add-btn {
-  padding: 0.75rem 1.75rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: transform 0.2s ease, opacity 0.2s ease;
   white-space: nowrap;
-  height: fit-content;
-}
-
-.task-add-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
 }
 
 .task-add-btn:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   cursor: not-allowed;
 }
 
 .tasks-divider {
   height: 1px;
-  background: var(--border);
-  margin: 2rem 0;
+  background: var(--line);
+  margin: 20px -20px;
 }
 
 .no-tasks {
   text-align: center;
-  padding: 3rem;
-  color: var(--text-muted);
-  font-size: 1.1rem;
-  font-style: italic;
+  padding: 32px 0;
+  color: var(--muted);
+  font-size: 13.5px;
 }
 
 .tasks-list {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
 }
 
 .task-item {
-  background: var(--surface);
-  border: 2px solid var(--border);
-  border-radius: 10px;
-  padding: 1rem 1.25rem;
-  transition: all 0.2s ease;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
 }
 
-.task-item:hover {
-  border-color: var(--border-strong);
-  box-shadow: 0 2px 8px var(--shadow-xs);
+.task-item:first-child {
+  padding-top: 0;
 }
 
-.task-item.priority-high {
-  border-left: 4px solid var(--danger-strong);
+.task-item:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
 }
 
-.task-item.priority-medium {
-  border-left: 4px solid var(--warning);
-}
-
-.task-item.priority-low {
-  border-left: 4px solid var(--accent);
-}
-
-.task-item.completed {
+.task-item.completed .task-footer {
   opacity: 0.6;
 }
 
@@ -423,51 +376,54 @@ label {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 0.75rem;
-  gap: 1rem;
+  margin-bottom: 8px;
+  gap: 12px;
 }
 
 .task-check-title {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 10px;
   flex: 1;
+  min-width: 0;
 }
 
 .task-checkbox {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   cursor: pointer;
-  accent-color: #667eea;
+  accent-color: var(--accent);
   flex-shrink: 0;
+}
+
+.task-checkbox:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .task-title {
   flex: 1;
   cursor: pointer;
   user-select: none;
-  color: var(--text);
-  font-size: 1rem;
-  font-weight: 600;
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 500;
   line-height: 1.4;
 }
 
 .task-item.completed .task-title {
   text-decoration: line-through;
-  color: var(--text-muted);
+  color: var(--muted);
 }
 
 .task-delete-btn {
   width: 28px;
   height: 28px;
-  background: var(--danger);
-  color: var(--on-accent);
-  border: none;
+  background: transparent;
+  color: var(--muted);
+  border: 0;
   border-radius: 6px;
-  font-size: 1.25rem;
-  line-height: 1;
   cursor: pointer;
-  transition: all 0.2s ease;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -476,78 +432,46 @@ label {
 }
 
 .task-delete-btn:hover {
-  background: var(--danger-strong);
-  transform: scale(1.1);
+  background: var(--sunken);
+  color: var(--neg);
+}
+
+.task-delete-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
 }
 
 .task-footer {
   display: flex;
   align-items: center;
-  gap: 1rem;
-}
-
-.priority-badge {
-  font-size: 0.688rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  padding: 0.25rem 0.625rem;
-  border-radius: 4px;
-  letter-spacing: 0.025em;
-}
-
-.priority-badge.high {
-  background: var(--danger-bg);
-  color: var(--danger-text);
-}
-
-.priority-badge.medium {
-  background: var(--warning-bg);
-  color: var(--warning-text);
-}
-
-.priority-badge.low {
-  background: var(--info-bg);
-  color: var(--info-text);
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  padding-left: 26px;
+  font-size: 12.5px;
 }
 
 .task-due-date {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.813rem;
-  color: var(--text-muted);
+  gap: 6px;
+  color: var(--muted);
 }
 
-.task-due-date svg {
-  color: var(--text-muted);
-}
-
-.status-badge {
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 0.25rem 0.625rem;
-  border-radius: 4px;
+.task-status {
   margin-left: auto;
 }
 
-.status-badge.overdue {
-  background: var(--danger-bg);
-  color: var(--danger-text);
-}
+@media (max-width: 600px) {
+  .form-row {
+    flex-wrap: wrap;
+  }
 
-.status-badge.urgent {
-  background: var(--warning-bg);
-  color: var(--warning-text);
-}
+  .form-group-btn {
+    width: 100%;
+  }
 
-.status-badge.upcoming {
-  background: var(--info-bg);
-  color: var(--info-text);
+  .task-add-btn {
+    width: 100%;
+  }
 }
-
-.status-badge.completed {
-  background: var(--success-bg);
-  color: var(--success-text);
-}
-
 </style>

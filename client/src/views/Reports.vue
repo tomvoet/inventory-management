@@ -14,31 +14,51 @@
     >
       <div v-if="isEmpty" class="card empty-state">{{ t('common.noData') }}</div>
       <template v-else>
+      <!-- Summary Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-label">{{ t('reports.stats.totalRevenue') }}</div>
+          <div class="stat-value">{{ formatWhole(totalRevenue) }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">{{ t('reports.stats.avgMonthlyRevenue') }}</div>
+          <div class="stat-value">{{ formatWhole(avgMonthlyRevenue) }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">{{ t('reports.stats.totalOrders') }}</div>
+          <div class="stat-value">{{ totalOrders }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">{{ t('reports.stats.bestQuarter') }}</div>
+          <div class="stat-value">{{ bestQuarter ?? '-' }}</div>
+        </div>
+      </div>
+
       <!-- Quarterly Performance -->
       <div class="card">
         <div class="card-header">
           <h3 class="card-title">{{ t('reports.quarterly.title') }}</h3>
         </div>
         <div class="table-container">
-          <table class="reports-table">
+          <table>
             <thead>
               <tr>
                 <th>{{ t('reports.quarterly.quarter') }}</th>
-                <th>{{ t('reports.quarterly.totalOrders') }}</th>
-                <th>{{ t('reports.quarterly.totalRevenue') }}</th>
-                <th>{{ t('reports.quarterly.avgOrderValue') }}</th>
+                <th class="num">{{ t('reports.quarterly.totalOrders') }}</th>
+                <th class="num">{{ t('reports.quarterly.totalRevenue') }}</th>
+                <th class="num">{{ t('reports.quarterly.avgOrderValue') }}</th>
                 <th>{{ t('reports.quarterly.fulfillmentRate') }}</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="q in quarterlyData" :key="q.quarter">
                 <td><strong>{{ q.quarter }}</strong></td>
-                <td>{{ q.total_orders }}</td>
-                <td>{{ formatMoney(q.total_revenue) }}</td>
-                <td>{{ formatMoney(q.avg_order_value) }}</td>
+                <td class="num">{{ q.total_orders }}</td>
+                <td class="num">{{ formatMoney(q.total_revenue) }}</td>
+                <td class="num">{{ formatMoney(q.avg_order_value) }}</td>
                 <td>
                   <span :class="getFulfillmentClass(q.fulfillment_rate)">
-                    {{ q.fulfillment_rate }}%
+                    <span class="num">{{ q.fulfillment_rate }}%</span>
                   </span>
                 </td>
               </tr>
@@ -53,16 +73,26 @@
           <h3 class="card-title">{{ t('reports.trend.title') }}</h3>
         </div>
         <div class="chart-container">
-          <div class="bar-chart">
-            <div v-for="month in monthlyData" :key="month.month" class="bar-wrapper">
-              <div class="bar-container">
-                <div
-                  class="bar"
-                  :style="{ height: getBarHeight(month.revenue) + 'px' }"
-                  :title="formatMoney(month.revenue)"
-                ></div>
+          <div class="chart-plot">
+            <div class="y-axis" aria-hidden="true">
+              <span
+                v-for="tick in yTicks"
+                :key="tick.offset"
+                class="y-label num"
+                :style="{ bottom: tick.offset + 'px' }"
+              >{{ tick.label }}</span>
+            </div>
+            <div class="bar-chart">
+              <div v-for="month in monthlyData" :key="month.month" class="bar-wrapper">
+                <div class="bar-container">
+                  <div
+                    class="bar"
+                    :style="{ height: getBarHeight(month.revenue) + 'px' }"
+                    :title="formatMoney(month.revenue)"
+                  ></div>
+                </div>
+                <div class="bar-label num">{{ formatMonth(month.month) }}</div>
               </div>
-              <div class="bar-label">{{ formatMonth(month.month) }}</div>
             </div>
           </div>
         </div>
@@ -74,28 +104,28 @@
           <h3 class="card-title">{{ t('reports.mom.title') }}</h3>
         </div>
         <div class="table-container">
-          <table class="reports-table">
+          <table>
             <thead>
               <tr>
                 <th>{{ t('reports.mom.month') }}</th>
-                <th>{{ t('reports.mom.orders') }}</th>
-                <th>{{ t('reports.mom.revenue') }}</th>
-                <th>{{ t('reports.mom.change') }}</th>
-                <th>{{ t('reports.mom.growthRate') }}</th>
+                <th class="num">{{ t('reports.mom.orders') }}</th>
+                <th class="num">{{ t('reports.mom.revenue') }}</th>
+                <th class="num">{{ t('reports.mom.change') }}</th>
+                <th class="num">{{ t('reports.mom.growthRate') }}</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="row in monthRows" :key="row.month">
                 <td><strong>{{ formatMonth(row.month) }}</strong></td>
-                <td>{{ row.order_count }}</td>
-                <td>{{ formatMoney(row.revenue) }}</td>
-                <td>
+                <td class="num">{{ row.order_count }}</td>
+                <td class="num">{{ formatMoney(row.revenue) }}</td>
+                <td class="num">
                   <span v-if="row.previousRevenue !== null" :class="getChangeClass(row.revenue, row.previousRevenue)">
                     {{ getChangeValue(row.revenue, row.previousRevenue) }}
                   </span>
                   <span v-else>-</span>
                 </td>
-                <td>
+                <td class="num">
                   <span v-if="row.previousRevenue !== null" :class="getChangeClass(row.revenue, row.previousRevenue)">
                     {{ getGrowthRate(row.revenue, row.previousRevenue) }}
                   </span>
@@ -107,25 +137,6 @@
         </div>
       </div>
 
-      <!-- Summary Stats -->
-      <div class="stats-grid">
-        <div class="stat-card">
-          <div class="stat-label">{{ t('reports.stats.totalRevenue') }}</div>
-          <div class="stat-value">{{ formatMoney(totalRevenue) }}</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">{{ t('reports.stats.avgMonthlyRevenue') }}</div>
-          <div class="stat-value">{{ formatMoney(avgMonthlyRevenue) }}</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">{{ t('reports.stats.totalOrders') }}</div>
-          <div class="stat-value">{{ totalOrders }}</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">{{ t('reports.stats.bestQuarter') }}</div>
-          <div class="stat-value">{{ bestQuarter ?? '-' }}</div>
-        </div>
-      </div>
       </template>
     </DataState>
   </div>
@@ -138,7 +149,7 @@ import DataState from '../components/DataState.vue'
 import { useFilters } from '../composables/useFilters'
 import { useI18n } from '../composables/useI18n'
 import { useDataLoader } from '../composables/useDataLoader'
-import { formatCurrencyWithDecimals } from '../utils/currency'
+import { formatCurrencyWithDecimals, formatCurrency, formatCompactCurrency } from '../utils/currency'
 
 const MONTH_KEYS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
 const MAX_BAR_HEIGHT = 200
@@ -193,7 +204,17 @@ const monthRows = computed(() =>
   }))
 )
 
+// Gridline ticks at 0-100% of the tallest bar, 50px apart
+const yTicks = computed(() =>
+  [0, 1, 2, 3, 4].map(i => ({
+    offset: i * (MAX_BAR_HEIGHT / 4),
+    label: formatCompactCurrency((maxRevenue.value * i) / 4, currentCurrency.value)
+  }))
+)
+
 const formatMoney = (value) => formatCurrencyWithDecimals(value, currentCurrency.value, 2)
+
+const formatWhole = (value) => formatCurrency(value, currentCurrency.value)
 
 // Falls back to the raw string for anything that isn't YYYY-MM
 const formatMonth = (monthStr) => {
@@ -234,162 +255,99 @@ const getGrowthRate = (current, previous) => {
 </script>
 
 <style scoped>
-.reports {
-  padding: 0;
-}
-
-.card {
-  background: var(--surface);
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 1px 3px var(--shadow-md);
-}
-
-.card-header {
-  margin-bottom: 1.5rem;
-}
-
-.card-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text);
-  margin: 0;
-}
-
-.reports-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.reports-table th {
-  background: var(--surface-muted);
-  padding: 0.75rem;
-  text-align: left;
-  font-weight: 600;
-  color: var(--text-muted);
-  border-bottom: 2px solid var(--border);
-}
-
-.reports-table td {
-  padding: 0.75rem;
-  border-bottom: 1px solid var(--border);
-}
-
-.reports-table tr:hover {
-  background: var(--surface-muted);
-}
-
+/* Bottom padding leaves room for the month labels that hang below the axis */
 .chart-container {
-  padding: 2rem 1rem;
-  min-height: 300px;
+  padding: 20px 18px 36px;
+  overflow-x: auto;
 }
 
+.chart-plot {
+  display: flex;
+  gap: 8px;
+  min-width: 720px;
+}
+
+.y-axis {
+  position: relative;
+  flex: 0 0 48px;
+  height: 200px;
+}
+
+.y-label {
+  position: absolute;
+  right: 0;
+  transform: translateY(50%);
+  font-size: 12px;
+  line-height: 1;
+  color: var(--muted);
+}
+
+/* Hairline gridlines every 50px (quarter of the 200px plot) */
 .bar-chart {
+  flex: 1;
   display: flex;
   align-items: flex-end;
-  justify-content: space-around;
-  height: 250px;
-  gap: 0.5rem;
+  height: 200px;
+  background-image: repeating-linear-gradient(
+    to top,
+    var(--line) 0,
+    var(--line) 1px,
+    transparent 1px,
+    transparent 50px
+  );
+  border-bottom: 1px solid var(--line-strong);
 }
 
 .bar-wrapper {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  position: relative;
   flex: 1;
-  max-width: 80px;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
 }
 
 .bar-container {
-  height: 200px;
+  width: 100%;
   display: flex;
   align-items: flex-end;
-  width: 100%;
+  justify-content: center;
 }
 
 .bar {
-  width: 100%;
-  background: linear-gradient(to top, var(--accent-bright), var(--accent-light));
-  border-radius: 4px 4px 0 0;
-  transition: all 0.3s;
-  cursor: pointer;
+  width: 40%;
+  max-width: 28px;
+  background: var(--accent);
+  border-radius: 2px 2px 0 0;
 }
 
 .bar:hover {
-  background: linear-gradient(to top, var(--accent), var(--accent-bright));
+  background: var(--accent-2);
 }
 
 .bar-label {
-  font-size: 0.75rem;
-  color: var(--text-muted);
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  padding-top: 6px;
   text-align: center;
-  transform: rotate(-45deg);
+  font-size: 12px;
+  color: var(--muted);
   white-space: nowrap;
-  margin-top: 1.5rem;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1rem;
-  margin-top: 1.5rem;
-}
-
-.stat-card {
-  background: var(--surface);
-  border-radius: 12px;
-  padding: 1.5rem;
-  box-shadow: 0 1px 3px var(--shadow-md);
-  border-left: 4px solid var(--accent-bright);
-}
-
-.stat-label {
-  font-size: 0.875rem;
-  color: var(--text-muted);
-  margin-bottom: 0.5rem;
-}
-
-.stat-value {
-  font-size: 1.875rem;
-  font-weight: 700;
-  color: var(--text);
-}
-
-.badge {
-  padding: 0.25rem 0.75rem;
-  border-radius: 9999px;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.badge.success {
-  background: var(--success-bg);
-  color: var(--success-text);
-}
-
-.badge.warning {
-  background: var(--warning-tint);
-  color: var(--warning-text);
-}
-
-.badge.danger {
-  background: var(--danger-tint);
-  color: var(--danger-text);
 }
 
 .positive-change {
-  color: var(--success-strong);
-  font-weight: 600;
+  color: var(--pos);
 }
 
 .negative-change {
-  color: var(--danger-strong);
-  font-weight: 600;
+  color: var(--neg);
 }
 
 .empty-state {
+  padding: 32px 18px;
   text-align: center;
-  color: var(--text-muted);
+  color: var(--muted);
 }
 </style>
+

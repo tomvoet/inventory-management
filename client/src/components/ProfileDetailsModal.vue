@@ -2,51 +2,44 @@
   <BaseModal :open="isOpen" :title="t('profileDetails.title')" max-width="600px" @close="close">
 
           <div class="modal-body">
-            <div class="profile-section">
-              <div class="avatar-section">
-                <div class="avatar-xl">
-                  {{ getInitials(currentUser.name) }}
-                </div>
-                <h4 class="profile-name">{{ currentUser.name }}</h4>
-                <p class="profile-job-title">{{ currentUser.jobTitle }}</p>
-              </div>
-
-              <div class="info-grid">
-                <div class="info-item">
-                  <div class="info-label">{{ t('profileDetails.email') }}</div>
-                  <div class="info-value">{{ currentUser.email }}</div>
-                </div>
-
-                <div class="info-item">
-                  <div class="info-label">{{ t('profileDetails.department') }}</div>
-                  <div class="info-value">{{ currentUser.department }}</div>
-                </div>
-
-                <div class="info-item">
-                  <div class="info-label">{{ t('profileDetails.location') }}</div>
-                  <div class="info-value">{{ currentUser.location }}</div>
-                </div>
-
-                <div class="info-item">
-                  <div class="info-label">{{ t('profileDetails.phone') }}</div>
-                  <div class="info-value">{{ currentUser.phone }}</div>
-                </div>
-
-                <div class="info-item">
-                  <div class="info-label">{{ t('profileDetails.joinDate') }}</div>
-                  <div class="info-value">{{ formatDate(currentUser.joinDate) }}</div>
-                </div>
-
-                <div class="info-item">
-                  <div class="info-label">{{ t('profileDetails.employeeId') }}</div>
-                  <div class="info-value">CC-{{ currentUser.id.toString().padStart(5, '0') }}</div>
-                </div>
+            <div class="detail-head profile-head">
+              <div class="avatar" aria-hidden="true">{{ getInitials(currentUser.name) }}</div>
+              <div class="detail-title">
+                <h4 class="detail-name">{{ currentUser.name }}</h4>
+                <div class="detail-sub">{{ currentUser.jobTitle }}</div>
               </div>
             </div>
+
+            <dl class="detail-list">
+              <div class="detail-row">
+                <dt class="detail-label">{{ t('profileDetails.email') }}</dt>
+                <dd class="detail-value">{{ currentUser.email }}</dd>
+              </div>
+              <div class="detail-row">
+                <dt class="detail-label">{{ t('profileDetails.department') }}</dt>
+                <dd class="detail-value">{{ currentUser.department }}</dd>
+              </div>
+              <div class="detail-row">
+                <dt class="detail-label">{{ t('profileDetails.location') }}</dt>
+                <dd class="detail-value">{{ currentUser.location }}</dd>
+              </div>
+              <div class="detail-row">
+                <dt class="detail-label">{{ t('profileDetails.phone') }}</dt>
+                <dd class="detail-value num">{{ currentUser.phone }}</dd>
+              </div>
+              <div class="detail-row">
+                <dt class="detail-label">{{ t('profileDetails.joinDate') }}</dt>
+                <dd class="detail-value">{{ formatDate(currentUser.joinDate) }}</dd>
+              </div>
+              <div class="detail-row">
+                <dt class="detail-label">{{ t('profileDetails.employeeId') }}</dt>
+                <dd class="detail-value num">CC-{{ currentUser.id.toString().padStart(5, '0') }}</dd>
+              </div>
+            </dl>
           </div>
 
           <div class="modal-footer">
-            <button class="btn-secondary" @click="close">{{ t('profileDetails.close') }}</button>
+            <button type="button" class="btn-secondary" @click="close">{{ t('profileDetails.close') }}</button>
           </div>
   </BaseModal>
 </template>
@@ -84,111 +77,140 @@ const formatDate = (dateString) => {
 </script>
 
 <style scoped>
-
-
-
-
-
-
 .modal-body {
   flex: 1;
   overflow-y: auto;
-  padding: 2rem;
+  padding: 20px;
 }
 
-.profile-section {
+.detail-head {
   display: flex;
-  flex-direction: column;
-  gap: 2rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
-.avatar-section {
+.detail-title {
+  min-width: 0;
+}
+
+.detail-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.3;
+  margin: 0;
+}
+
+.detail-sub {
+  margin-top: 2px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.summary-cell {
+  background: var(--surface);
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.summary-label {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.summary-value {
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  line-height: 1.2;
+}
+
+.summary-note {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.summary-value.neg { color: var(--neg); }
+.summary-value.pos { color: var(--pos); }
+
+.detail-list {
+  margin: 0;
+}
+
+.detail-row {
+  display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--border);
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 40px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
 }
 
-.avatar-xl {
-  width: 96px;
-  height: 96px;
+.detail-row:last-child {
+  border-bottom: 0;
+}
+
+.detail-label {
+  font-size: 13px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.detail-value {
+  font-size: 13.5px;
+  color: var(--ink);
+  text-align: right;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.detail-value.neg { color: var(--neg); }
+.detail-value.pos { color: var(--pos); }
+
+.modal-footer {
+  padding: 12px 20px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.profile-head {
+  align-items: center;
+  justify-content: flex-start;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  flex-shrink: 0;
   border-radius: 50%;
-  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-deep) 100%);
-  color: white;
+  background: var(--ink);
+  color: var(--on-ink);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-size: 2rem;
-  letter-spacing: 0.025em;
-  box-shadow: 0 4px 12px var(--accent-shadow-sm);
-}
-
-.profile-name {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text);
-  margin: 0;
-}
-
-.profile-job-title {
-  font-size: 1rem;
-  color: var(--text-muted);
-  margin: 0;
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 1.5rem;
-}
-
-.info-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.info-label {
-  font-size: 0.813rem;
+  font-size: 14px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-muted);
 }
-
-.info-value {
-  font-size: 0.938rem;
-  color: var(--text);
-  font-weight: 500;
-}
-
-.modal-footer {
-  padding: 1.5rem;
-  border-top: 1px solid var(--border);
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-}
-
-.btn-secondary {
-  padding: 0.625rem 1.25rem;
-  background: var(--surface-subtle);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-weight: 500;
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 0.15s ease;
-  font-family: inherit;
-}
-
-.btn-secondary:hover {
-  background: var(--border);
-  border-color: var(--border-strong);
-}
-
 </style>

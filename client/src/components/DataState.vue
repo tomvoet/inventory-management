@@ -13,9 +13,9 @@ const { t } = useI18n()
 </script>
 
 <template>
-  <div v-if="loading" class="loading">{{ t('common.loading') }}</div>
+  <div v-if="loading" class="data-state-loading" role="status">{{ t('common.loading') }}</div>
   <template v-else>
-    <div v-if="error" class="error data-state-error" role="alert">
+    <div v-if="error" class="data-state-error" role="alert">
       <span>{{ t('common.loadError') }}</span>
       <button type="button" class="retry-btn" @click="$emit('retry')">{{ t('common.retry') }}</button>
     </div>
@@ -25,30 +25,53 @@ const { t } = useI18n()
 </template>
 
 <style scoped>
+.data-state-loading {
+  padding: 32px 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13.5px;
+}
+
 .data-state-error {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 16px;
+  margin-bottom: 16px;
+  padding: 10px 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--neg);
+  font-size: 13.5px;
 }
 
 .retry-btn {
-  padding: 0.375rem 0.875rem;
-  border: 1px solid var(--danger-border);
+  height: 32px;
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
   border-radius: 6px;
   background: var(--surface);
-  color: var(--danger-text);
-  font-size: 0.875rem;
+  color: var(--neg);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
   cursor: pointer;
+  flex-shrink: 0;
 }
 
 .retry-btn:hover {
-  background: var(--danger-tint);
+  border-color: var(--neg);
+}
+
+.retry-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .refresh-indicator {
-  margin-bottom: 0.75rem;
-  color: var(--text-muted);
-  font-size: 0.813rem;
+  margin-bottom: 12px;
+  color: var(--muted);
+  font-size: 12.5px;
 }
 </style>

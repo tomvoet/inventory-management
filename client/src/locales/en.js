@@ -9,18 +9,26 @@ export default {
     restocking: 'Restocking',
     reports: 'Reports',
     companyName: 'Catalyst Components',
-    subtitle: 'Inventory Management System'
+    subtitle: 'Inventory Management System',
+    brandSub: 'Operations',
+    groupOperations: 'Operations',
+    groupPlanning: 'Planning'
   },
 
   // Theme
   theme: {
     switchToDark: 'Switch to dark mode',
-    switchToLight: 'Switch to light mode'
+    switchToLight: 'Switch to light mode',
+    darkMode: 'Dark mode',
+    lightMode: 'Light mode'
   },
 
   // Dashboard
   dashboard: {
     title: 'Overview',
+    blockedOrders: 'orders blocked by shortages',
+    reviewShortages: 'Review shortages',
+    stockOnHand: 'on hand',
     kpi: {
       title: 'Key Performance Indicators',
       inventoryTurnover: 'Inventory Turnover Rate',
@@ -52,6 +60,8 @@ export default {
     },
     inventoryShortages: {
       title: 'Inventory Shortages',
+      subtitle: "Orders that can't ship until stock arrives",
+      coverage: 'Coverage',
       noShortages: 'No inventory shortages - all orders can be fulfilled!',
       noData: 'No inventory data for selected filters',
       orderId: 'Order ID',
@@ -63,7 +73,9 @@ export default {
       daysDelayed: 'Days Delayed',
       priority: 'Priority',
       unitsShort: 'units short',
-      days: 'days'
+      days: 'days',
+      dayCount: '{count} day',
+      daysCount: '{count} days'
     },
     topProducts: {
       title: 'Top Products by Revenue',
@@ -84,6 +96,7 @@ export default {
   inventory: {
     title: 'Inventory',
     description: 'Track and manage all inventory items',
+    summary: '{skus} SKUs, {value} on hand. {low} below reorder point.',
     stockLevels: 'Stock Levels',
     skus: 'SKUs',
     searchPlaceholder: 'Search by item name...',
@@ -150,6 +163,7 @@ export default {
     avgOrderValue: 'Avg Order Value',
     onTimeDelivery: 'On-Time Delivery',
     itemsCount: '{count} items',
+    itemsCountOne: '{count} item',
     quantity: 'Qty',
     submittedOrders: {
       title: 'Submitted Orders',
@@ -226,6 +240,7 @@ export default {
     stableDemand: 'Stable Demand',
     decreasingDemand: 'Decreasing Demand',
     itemsCount: '{count} items',
+    itemsCountOne: '{count} item',
     more: 'more...',
     demandForecasts: 'Demand Forecasts',
     table: {

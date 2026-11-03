@@ -1,10 +1,9 @@
 <template>
   <div class="filters-bar">
     <div class="filters-container">
-      <div class="filters-grid">
-        <div class="filter-group">
-          <label for="filter-period">{{ t('filters.timePeriod') }}</label>
-          <select id="filter-period" v-model="selectedPeriod" class="filter-select">
+        <label class="chip">
+          <span class="chip-label">{{ t('filters.timePeriod') }}</span>
+          <select v-model="selectedPeriod" class="chip-select">
             <option value="all">{{ t('filters.allMonths') }}</option>
             <option value="2025-01">{{ t('months.january') }}</option>
             <option value="2025-02">{{ t('months.february') }}</option>
@@ -19,21 +18,23 @@
             <option value="2025-11">{{ t('months.november') }}</option>
             <option value="2025-12">{{ t('months.december') }}</option>
           </select>
-        </div>
+          <svg class="chip-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5"/></svg>
+        </label>
 
-        <div class="filter-group">
-          <label for="filter-location">{{ t('filters.location') }}</label>
-          <select id="filter-location" v-model="selectedLocation" class="filter-select">
+        <label class="chip">
+          <span class="chip-label">{{ t('filters.location') }}</span>
+          <select v-model="selectedLocation" class="chip-select">
             <option value="all">{{ t('filters.all') }}</option>
             <option value="San Francisco">{{ t('warehouses.sanFrancisco') }}</option>
             <option value="London">{{ t('warehouses.london') }}</option>
             <option value="Tokyo">{{ t('warehouses.tokyo') }}</option>
           </select>
-        </div>
+          <svg class="chip-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5"/></svg>
+        </label>
 
-        <div class="filter-group">
-          <label for="filter-category">{{ t('filters.category') }}</label>
-          <select id="filter-category" v-model="selectedCategory" class="filter-select">
+        <label class="chip">
+          <span class="chip-label">{{ t('filters.category') }}</span>
+          <select v-model="selectedCategory" class="chip-select">
             <option value="all">{{ t('filters.all') }}</option>
             <option value="circuit boards">{{ t('categories.circuitBoards') }}</option>
             <option value="sensors">{{ t('categories.sensors') }}</option>
@@ -41,20 +42,21 @@
             <option value="controllers">{{ t('categories.controllers') }}</option>
             <option value="power supplies">{{ t('categories.powerSupplies') }}</option>
           </select>
-        </div>
+          <svg class="chip-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5"/></svg>
+        </label>
 
-        <div class="filter-group">
-          <label for="filter-status">{{ t('filters.orderStatus') }}</label>
-          <select id="filter-status" v-model="selectedStatus" class="filter-select">
+        <label class="chip">
+          <span class="chip-label">{{ t('filters.orderStatus') }}</span>
+          <select v-model="selectedStatus" class="chip-select">
             <option value="all">{{ t('filters.all') }}</option>
             <option value="delivered">{{ t('status.delivered') }}</option>
             <option value="shipped">{{ t('status.shipped') }}</option>
             <option value="processing">{{ t('status.processing') }}</option>
             <option value="backordered">{{ t('status.backordered') }}</option>
           </select>
-        </div>
-      </div>
-
+          <svg class="chip-chevron" width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 4.5 6 7.5 9 4.5"/></svg>
+        </label>
+      <span class="filters-spacer"></span>
       <button
         class="reset-filters-btn"
         @click="resetFilters"
@@ -103,93 +105,142 @@ export default {
 
 <style scoped>
 .filters-bar {
-  background: var(--surface-muted);
-  border-bottom: 1px solid var(--border);
-  padding: 0.75rem 0;
+  background: var(--surface);
+  border-bottom: 1px solid var(--line);
   position: sticky;
-  top: 70px;
+  top: 0;
   z-index: 90;
 }
 
 .filters-container {
-  max-width: 1600px;
-  margin: 0 auto;
-  padding: 0 2rem;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 1rem;
+  gap: 8px;
+  padding: 10px 32px;
+  min-height: 56px;
 }
 
-.filters-grid {
+.chip {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 1rem;
-  flex: 1;
+  gap: 6px;
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  font-size: 13px;
+  cursor: pointer;
 }
 
-.filter-group {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+.chip:hover {
+  border-color: var(--muted);
 }
 
-.filter-group label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text-muted);
+.chip:focus-within {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+.chip-label {
+  color: var(--muted);
   white-space: nowrap;
 }
 
-.filter-select {
-  padding: 0.4rem 0.75rem;
-  border: 1px solid var(--border-strong);
-  border-radius: 6px;
-  font-size: 0.813rem;
-  color: var(--text);
-  background: var(--surface);
-  cursor: pointer;
-  transition: all 0.2s;
-  font-weight: 500;
-  min-width: 140px;
-}
-
-.filter-select:hover {
-  border-color: var(--text-faint);
-}
-
-.filter-select:focus {
+/* Native select keeps keyboard and screen reader behaviour; the chevron is drawn separately */
+.chip-select {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 0;
   outline: none;
-  border-color: var(--accent-bright);
-  box-shadow: 0 0 0 3px var(--focus-ring);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0 16px 0 0;
+  margin-right: -16px;
+  height: 100%;
+}
+
+.chip-select option {
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.chip-chevron {
+  position: relative;
+  left: 0;
+  color: var(--muted);
+  pointer-events: none;
+  flex-shrink: 0;
+}
+
+.filters-spacer {
+  flex: 1;
 }
 
 .reset-filters-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 0.4rem;
-  background: var(--surface);
-  border: 1px solid var(--border);
+  width: 32px;
+  height: 32px;
+  background: transparent;
+  border: 1px solid transparent;
   border-radius: 6px;
-  color: var(--text-muted);
+  color: var(--muted);
   cursor: pointer;
-  transition: all 0.2s;
   flex-shrink: 0;
 }
 
 .reset-filters-btn:hover:not(:disabled) {
-  background: var(--surface-muted);
-  border-color: var(--border-strong);
-  color: var(--text);
+  background: var(--sunken);
+  color: var(--ink);
 }
 
 .reset-filters-btn:disabled {
-  opacity: 0.3;
+  opacity: 0.35;
   cursor: not-allowed;
 }
 
 .reset-filters-btn svg {
-  width: 18px;
-  height: 18px;
+  width: 16px;
+  height: 16px;
+}
+
+@media (max-width: 900px) {
+  /* Chips in 2 columns; reset button spans both rows in a third column so the bar stays two rows tall */
+  .filters-container {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 32px;
+    padding: 10px 16px;
+  }
+
+  .chip {
+    min-width: 0;
+  }
+
+  .reset-filters-btn {
+    grid-column: 3;
+    grid-row: 1 / span 2;
+    align-self: center;
+  }
+
+  .chip-select {
+    flex: 1;
+    min-width: 0;
+    text-overflow: ellipsis;
+  }
+
+  .chip-label {
+    font-size: 12.5px;
+  }
+
+  .filters-spacer {
+    display: none;
+  }
 }
 </style>

@@ -13,77 +13,79 @@
       @retry="load"
     >
       <!-- Revenue & Financial KPIs -->
-      <div class="stats-grid-finance">
-        <div class="stat-card revenue-card">
-          <div class="stat-label">{{ t('finance.totalRevenue') }}</div>
-          <div class="stat-value">{{ formatCurrency(revenueMetrics.totalRevenue) }}</div>
-          <div class="stat-change positive">
-            <span class="change-icon">↑</span>
-            {{ t('finance.fromOrders', { count: revenueMetrics.orderCount }) }}
-          </div>
-        </div>
-        <div class="stat-card cost-card">
-          <div class="stat-label">{{ t('finance.totalCosts') }}</div>
-          <div class="stat-value">{{ formatCurrency(totalCosts) }}</div>
-          <div class="stat-meta">{{ t('finance.costBreakdown') }}</div>
-        </div>
-        <div class="stat-card profit-card">
-          <div class="stat-label">{{ t('finance.netProfit') }}</div>
-          <div class="stat-value">{{ formatCurrency(netProfit) }}</div>
-          <div class="stat-meta">{{ profitMargin }}% {{ t('finance.margin') }}</div>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-label">{{ t('finance.totalRevenue') }}</span>
+          <span class="stat-value">{{ formatCurrency(revenueMetrics.totalRevenue) }}</span>
+          <span class="stat-meta">{{ t('finance.fromOrders', { count: revenueMetrics.orderCount }) }}</span>
         </div>
         <div class="stat-card">
-          <div class="stat-label">{{ t('finance.avgOrderValue') }}</div>
-          <div class="stat-value">{{ formatCurrency(revenueMetrics.avgOrderValue) }}</div>
-          <div class="stat-meta">{{ t('finance.perOrderRevenue') }}</div>
+          <span class="stat-label">{{ t('finance.totalCosts') }}</span>
+          <span class="stat-value">{{ formatCurrency(totalCosts) }}</span>
+          <span class="stat-meta">{{ t('finance.costBreakdown') }}</span>
+        </div>
+        <div class="stat-card" :class="netProfit >= 0 ? 'success' : 'danger'">
+          <span class="stat-label">{{ t('finance.netProfit') }}</span>
+          <span class="stat-value">{{ formatCurrency(netProfit) }}</span>
+          <span class="stat-meta"><span class="num">{{ profitMargin }}%</span> {{ t('finance.margin') }}</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-label">{{ t('finance.avgOrderValue') }}</span>
+          <span class="stat-value">{{ formatCurrency(revenueMetrics.avgOrderValue) }}</span>
+          <span class="stat-meta">{{ t('finance.perOrderRevenue') }}</span>
         </div>
       </div>
 
       <!-- Monthly Revenue vs Cost Chart -->
-      <div class="card chart-card">
+      <div class="card">
         <div class="card-header">
           <h3 class="card-title">{{ t('finance.revenueVsCosts.title') }}</h3>
           <div class="chart-legend">
-            <span class="legend-item"><span class="legend-dot revenue-color"></span>{{ t('finance.revenueVsCosts.revenue') }}</span>
-            <span class="legend-item"><span class="legend-dot cost-color"></span>{{ t('finance.revenueVsCosts.costs') }}</span>
+            <span class="legend-item"><span class="legend-swatch revenue-color"></span>{{ t('finance.revenueVsCosts.revenue') }}</span>
+            <span class="legend-item"><span class="legend-swatch cost-color"></span>{{ t('finance.revenueVsCosts.costs') }}</span>
           </div>
         </div>
-        <div class="chart-container">
+        <div class="chart-scroll">
           <div class="bar-chart">
-            <div class="y-axis">
+            <div class="y-axis num">
               <span>{{ formatCompact(maxRevenueValue * 1000) }}</span>
               <span>{{ formatCompact(maxRevenueValue * 750) }}</span>
               <span>{{ formatCompact(maxRevenueValue * 500) }}</span>
               <span>{{ formatCompact(maxRevenueValue * 250) }}</span>
               <span>{{ formatCompact(0) }}</span>
             </div>
-            <div class="chart-area">
-              <div v-for="month in monthlyRevenue" :key="month.month" class="bar-group-revenue">
-                <div class="revenue-bars">
-                  <div class="revenue-bar" :style="{ height: getRevenueBarHeight(month.revenue) + '%' }" :title="`Revenue: ${formatCurrency(month.revenue)}`"></div>
-                  <div class="cost-bar" :style="{ height: getRevenueBarHeight(month.costs) + '%' }" :title="`Costs: ${formatCurrency(month.costs)}`"></div>
+            <div class="plot">
+              <div class="gridlines" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
+              <div class="cols">
+                <div v-for="month in monthlyRevenue" :key="month.month" class="col">
+                  <div class="revenue-bars">
+                    <div class="revenue-bar" :style="{ height: getRevenueBarHeight(month.revenue) + '%' }" :title="`Revenue: ${formatCurrency(month.revenue)}`"></div>
+                    <div class="cost-bar" :style="{ height: getRevenueBarHeight(month.costs) + '%' }" :title="`Costs: ${formatCurrency(month.costs)}`"></div>
+                  </div>
                 </div>
-                <span class="bar-label">{{ translateMonth(month.month) }}</span>
               </div>
+            </div>
+            <div class="x-axis num">
+              <span v-for="month in monthlyRevenue" :key="month.month">{{ translateMonth(month.month) }}</span>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Monthly Cost Flow Chart -->
-      <div class="card chart-card">
+      <div class="card">
         <div class="card-header">
           <h3 class="card-title">{{ t('finance.monthlyCostFlow.title') }}</h3>
           <div class="chart-legend">
-            <span class="legend-item"><span class="legend-dot procurement"></span>{{ t('finance.monthlyCostFlow.procurement') }}</span>
-            <span class="legend-item"><span class="legend-dot operational"></span>{{ t('finance.monthlyCostFlow.operational') }}</span>
-            <span class="legend-item"><span class="legend-dot labor"></span>{{ t('finance.monthlyCostFlow.labor') }}</span>
-            <span class="legend-item"><span class="legend-dot overhead"></span>{{ t('finance.monthlyCostFlow.overhead') }}</span>
+            <span class="legend-item"><span class="legend-swatch procurement"></span>{{ t('finance.monthlyCostFlow.procurement') }}</span>
+            <span class="legend-item"><span class="legend-swatch operational"></span>{{ t('finance.monthlyCostFlow.operational') }}</span>
+            <span class="legend-item"><span class="legend-swatch labor"></span>{{ t('finance.monthlyCostFlow.labor') }}</span>
+            <span class="legend-item"><span class="legend-swatch overhead"></span>{{ t('finance.monthlyCostFlow.overhead') }}</span>
           </div>
         </div>
-        <div class="chart-container">
+        <div class="chart-scroll">
           <div class="bar-chart">
-            <div class="y-axis">
+            <div class="y-axis num">
               <span>{{ formatCompact(25000) }}</span>
               <span>{{ formatCompact(20000) }}</span>
               <span>{{ formatCompact(15000) }}</span>
@@ -91,16 +93,21 @@
               <span>{{ formatCompact(5000) }}</span>
               <span>{{ formatCompact(0) }}</span>
             </div>
-            <div class="chart-area">
-              <div v-for="month in monthlySpending" :key="month.month" class="bar-group">
-                <button type="button" class="stacked-bar" :aria-label="`${month.month} - ${t('common.viewDetails')}`" @click="showCostDetail(month)">
-                  <div class="bar-segment procurement" :style="{ height: getBarHeight(month.procurement) + '%' }" :title="`Procurement: ${formatCurrency(month.procurement)}`"></div>
-                  <div class="bar-segment operational" :style="{ height: getBarHeight(month.operational) + '%' }" :title="`Operational: ${formatCurrency(month.operational)}`"></div>
-                  <div class="bar-segment labor" :style="{ height: getBarHeight(month.labor) + '%' }" :title="`Labor: ${formatCurrency(month.labor)}`"></div>
-                  <div class="bar-segment overhead" :style="{ height: getBarHeight(month.overhead) + '%' }" :title="`Overhead: ${formatCurrency(month.overhead)}`"></div>
-                </button>
-                <span class="bar-label">{{ translateMonth(month.month) }}</span>
+            <div class="plot">
+              <div class="gridlines" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+              <div class="cols">
+                <div v-for="month in monthlySpending" :key="month.month" class="col">
+                  <button type="button" class="stacked-bar" :aria-label="`${month.month} - ${t('common.viewDetails')}`" @click="showCostDetail(month)">
+                    <div class="bar-segment procurement" :style="{ height: getBarHeight(month.procurement) + '%' }" :title="`Procurement: ${formatCurrency(month.procurement)}`"></div>
+                    <div class="bar-segment operational" :style="{ height: getBarHeight(month.operational) + '%' }" :title="`Operational: ${formatCurrency(month.operational)}`"></div>
+                    <div class="bar-segment labor" :style="{ height: getBarHeight(month.labor) + '%' }" :title="`Labor: ${formatCurrency(month.labor)}`"></div>
+                    <div class="bar-segment overhead" :style="{ height: getBarHeight(month.overhead) + '%' }" :title="`Overhead: ${formatCurrency(month.overhead)}`"></div>
+                  </button>
+                </div>
               </div>
+            </div>
+            <div class="x-axis num">
+              <span v-for="month in monthlySpending" :key="month.month">{{ translateMonth(month.month) }}</span>
             </div>
           </div>
         </div>
@@ -115,15 +122,15 @@
           <div class="category-list">
             <div v-for="category in categorySpending" :key="category.category" class="category-item">
               <div class="category-info">
-                <div class="category-name">{{ translateCategory(category.category) }}</div>
-                <div class="category-amount">{{ formatCurrency(category.amount) }}</div>
+                <span class="category-name">{{ translateCategory(category.category) }}</span>
+                <span class="num category-amount">{{ formatCurrency(category.amount) }}</span>
               </div>
               <div class="category-bar-container">
                 <div class="category-bar" :style="{ width: category.percentage + '%' }"></div>
               </div>
               <div class="category-meta">
-                <span class="percentage">{{ category.percentage }}% {{ t('finance.categorySpending.ofTotal') }}</span>
-                <span class="change" :class="{ positive: category.change > 0, negative: category.change < 0 }">
+                <span><span class="num">{{ category.percentage }}%</span> {{ t('finance.categorySpending.ofTotal') }}</span>
+                <span class="num" :class="{ 'delta-pos': category.change > 0, 'delta-neg': category.change < 0 }">
                   {{ category.change > 0 ? '+' : '' }}{{ category.change }}%
                 </span>
               </div>
@@ -132,19 +139,19 @@
         </div>
 
         <!-- Recent Transactions -->
-        <div class="card transactions-card">
+        <div class="card">
           <div class="card-header">
             <h3 class="card-title">{{ t('finance.transactions.title') }}</h3>
           </div>
-          <div class="transactions-table-container">
-            <table class="transactions-table">
+          <div class="table-container transactions-scroll">
+            <table>
               <thead>
                 <tr>
                   <th>{{ t('finance.transactions.id') }}</th>
                   <th>{{ t('finance.transactions.description') }}</th>
                   <th>{{ t('finance.transactions.vendor') }}</th>
                   <th>{{ t('finance.transactions.date') }}</th>
-                  <th class="text-right">{{ t('finance.transactions.amount') }}</th>
+                  <th class="num">{{ t('finance.transactions.amount') }}</th>
                 </tr>
               </thead>
               <tbody>
@@ -157,11 +164,11 @@
                   @keydown.enter.self.prevent="handleTransactionClick(transaction)"
                   @keydown.space.self.prevent="handleTransactionClick(transaction)"
                 >
-                  <td class="transaction-id">{{ transaction.id.toString().padStart(3, '0') }}</td>
-                  <td class="transaction-description">{{ transaction.description }}</td>
-                  <td class="transaction-vendor">{{ transaction.vendor }}</td>
-                  <td class="transaction-date">{{ formatDateShort(transaction.date) }}</td>
-                  <td class="transaction-amount text-right">{{ formatCurrency(transaction.amount) }}</td>
+                  <td class="num cell-code">{{ transaction.id.toString().padStart(3, '0') }}</td>
+                  <td>{{ transaction.description }}</td>
+                  <td class="muted">{{ transaction.vendor }}</td>
+                  <td class="num cell-code">{{ formatDateShort(transaction.date) }}</td>
+                  <td class="num">{{ formatCurrency(transaction.amount) }}</td>
                 </tr>
               </tbody>
             </table>
@@ -490,172 +497,160 @@ export default {
 </script>
 
 <style scoped>
-.stat-change {
-  margin-top: 0.75rem;
-  font-size: 0.875rem;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
+.stat-meta {
+  font-size: 13px;
+  color: var(--muted);
 }
 
-.stat-change.positive {
-  color: var(--success-strong);
-}
+.delta-pos { color: var(--pos); }
+.delta-neg { color: var(--neg); }
 
-.stat-change.negative {
-  color: var(--danger-strong);
-}
-
-.change-icon {
-  font-weight: 700;
-  font-size: 1rem;
-}
-
-.chart-card {
-  margin-bottom: 1.75rem;
-}
+.muted { color: var(--muted); }
 
 .chart-legend {
   display: flex;
-  gap: 1.5rem;
-  font-size: 0.875rem;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  font-size: 13px;
 }
 
 .legend-item {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  color: var(--text-muted);
+  gap: 6px;
+  color: var(--muted);
 }
 
-.legend-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 3px;
+.legend-swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
 }
 
-.legend-dot.procurement { background: var(--accent-bright); }
-.legend-dot.operational { background: var(--purple); }
-.legend-dot.labor { background: var(--success); }
-.legend-dot.overhead { background: var(--warning); }
-.legend-dot.revenue-color { background: var(--chart-ink); }
-.legend-dot.cost-color { background: var(--danger); }
+.procurement { background: var(--accent); }
+.operational { background: var(--accent-2); }
+.labor { background: var(--seg-gray); }
+.overhead { background: color-mix(in srgb, var(--seg-gray) 55%, var(--surface)); }
+.revenue-color { background: var(--accent); }
+.cost-color { background: var(--seg-gray); }
 
-.stats-grid-finance {
+/* Narrow screens scroll the chart rather than squeezing 12 columns */
+.chart-scroll {
+  overflow-x: auto;
+}
+
+.bar-chart {
+  --plot-h: 240px;
+  min-width: 480px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 1.5rem;
-  margin-bottom: 2rem;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 12px;
+  padding: 6px 0 0;
 }
 
-.revenue-card {
-  border-left: 4px solid var(--chart-ink);
-}
-
-.cost-card {
-  border-left: 4px solid var(--danger);
-}
-
-.profit-card {
-  border-left: 4px solid var(--accent-bright);
-}
-
-.stat-meta {
-  margin-top: 0.5rem;
-  font-size: 0.813rem;
-  color: var(--text-muted);
-}
-
-.bar-group-revenue {
+/* Extra 12px and negative margin center the end labels on the first/last gridline */
+.y-axis {
+  height: calc(var(--plot-h) + 12px);
+  margin: -6px 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  line-height: 12px;
+  color: var(--muted);
+  text-align: right;
+}
+
+.plot {
+  position: relative;
+  height: var(--plot-h);
+}
+
+.gridlines {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.gridlines i {
+  display: block;
+  height: 0;
+  border-top: 1px solid var(--line);
+}
+
+.gridlines i:last-child {
+  border-top-color: var(--line-strong);
+}
+
+.cols {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  gap: 8px;
+}
+
+.col {
   flex: 1;
+  min-width: 0;
+  display: flex;
+  justify-content: center;
   height: 100%;
+}
+
+.x-axis {
+  grid-column: 2;
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.x-axis span {
+  flex: 1;
+  text-align: center;
 }
 
 .revenue-bars {
   width: 100%;
-  max-width: 80px;
+  max-width: 44px;
   display: flex;
-  gap: 6px;
+  gap: 2px;
   justify-content: center;
   align-items: flex-end;
   height: 100%;
-  padding-bottom: 2rem;
 }
 
-.revenue-bar, .cost-bar {
-  width: 50%;
-  max-width: 30px;
-  border-radius: 6px 6px 0 0;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  min-height: 4px;
-}
-
-.revenue-bar {
-  background: var(--chart-ink);
-}
-
+.revenue-bar,
 .cost-bar {
-  background: var(--danger);
+  flex: 1;
+  border-radius: 2px 2px 0 0;
+  min-height: 2px;
 }
 
-.revenue-bar:hover, .cost-bar:hover {
+.revenue-bar { background: var(--accent); }
+.cost-bar { background: var(--seg-gray); }
+
+.revenue-bar:hover,
+.cost-bar:hover {
   opacity: 0.8;
-  transform: scaleY(1.05);
-}
-
-.chart-container {
-  padding: 1.5rem 0;
-}
-
-.bar-chart {
-  display: flex;
-  gap: 1.5rem;
-  height: 350px;
-}
-
-.y-axis {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding-right: 1rem;
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  border-right: 1px solid var(--border);
-}
-
-.chart-area {
-  flex: 1;
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-around;
-  gap: 0.5rem;
-}
-
-.bar-group {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  flex: 1;
-  height: 100%;
 }
 
 .stacked-bar {
   background: none;
   border: 0;
   font: inherit;
-  padding: 0 0 2rem;
+  padding: 0;
   width: 100%;
-  max-width: 60px;
+  max-width: 44px;
   display: flex;
   flex-direction: column-reverse;
   align-items: stretch;
+  gap: 1px;
   height: 100%;
   cursor: pointer;
-  transition: opacity 0.2s ease;
 }
 
 .stacked-bar:hover {
@@ -664,190 +659,93 @@ export default {
 
 .bar-segment {
   width: 100%;
-  transition: all 0.3s ease;
-  cursor: pointer;
   display: block;
 }
 
-.bar-segment:first-child {
-  border-radius: 0 0 6px 6px;
-}
-
 .bar-segment:last-child {
-  border-radius: 6px 6px 0 0;
-}
-
-.bar-segment.procurement { background: var(--accent-bright); }
-.bar-segment.operational { background: var(--purple); }
-.bar-segment.labor { background: var(--success); }
-.bar-segment.overhead { background: var(--warning); }
-
-.bar-segment:hover {
-  opacity: 0.8;
-}
-
-.bar-label {
-  margin-top: 0.5rem;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--text-muted);
+  border-radius: 2px 2px 0 0;
 }
 
 .two-column-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
-  gap: 1.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.two-column-grid .card {
+  margin-bottom: 0;
 }
 
 .category-list {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 18px;
 }
 
 .category-item {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 6px;
 }
 
-.category-info {
+.category-info,
+.category-meta {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: baseline;
+  gap: 12px;
 }
 
-.category-name {
-  font-weight: 600;
-  color: var(--text);
-}
-
+.category-name,
 .category-amount {
-  font-weight: 700;
-  color: var(--accent);
-  font-size: 1.125rem;
+  color: var(--ink);
 }
 
 .category-bar-container {
-  width: 100%;
-  height: 8px;
-  background: var(--surface-subtle);
-  border-radius: 4px;
+  height: 6px;
+  background: var(--sunken);
+  border-radius: 3px;
   overflow: hidden;
 }
 
 .category-bar {
   height: 100%;
-  background: linear-gradient(90deg, var(--accent-bright) 0%, var(--accent) 100%);
-  border-radius: 4px;
-  transition: width 0.6s ease;
+  background: var(--accent);
+  border-radius: 3px;
 }
 
 .category-meta {
-  display: flex;
-  justify-content: space-between;
-  font-size: 0.813rem;
+  font-size: 12.5px;
+  color: var(--muted);
 }
 
-.percentage {
-  color: var(--text-muted);
-}
-
-.change {
-  font-weight: 600;
-}
-
-.change.positive {
-  color: var(--success-strong);
-}
-
-.change.negative {
-  color: var(--danger-strong);
-}
-
-.transactions-card {
-  display: flex;
-  flex-direction: column;
-}
-
-.transactions-table-container {
-  overflow-y: auto;
+.transactions-scroll {
   max-height: 400px;
+  overflow-y: auto;
 }
 
-.transactions-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.transactions-table thead {
+.transactions-scroll th {
   position: sticky;
   top: 0;
-  background: var(--surface-muted);
   z-index: 1;
+  background: var(--surface);
 }
 
-.transactions-table th {
+/* Mono IDs and dates stay on one line, left-aligned; description and vendor wrap instead */
+.cell-code {
   text-align: left;
-  padding: 0.625rem 0.75rem;
-  font-weight: 600;
-  color: var(--text-soft);
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+  color: var(--muted);
 }
 
-.transactions-table th.text-right {
-  text-align: right;
-}
-
-.transactions-table td {
-  padding: 0.75rem 0.75rem;
-  border-bottom: 1px solid var(--surface-subtle);
-  font-size: 0.875rem;
-}
-
-.transactions-table tbody tr {
+.clickable-row {
   cursor: pointer;
-  transition: background-color 0.15s ease;
 }
 
-.transactions-table tbody tr:hover {
-  background: var(--surface-muted);
-}
-
-.transactions-table tbody tr.clickable-row:hover {
-  background: var(--accent-soft);
-}
-
-.transaction-id {
-  color: var(--text-muted);
-  font-weight: 500;
-  font-family: 'Monaco', 'Courier New', monospace;
-  font-size: 0.813rem;
-}
-
-.transaction-description {
-  color: var(--text);
-  font-weight: 500;
-}
-
-.transaction-vendor {
-  color: var(--text-muted);
-}
-
-.transaction-date {
-  color: var(--text-muted);
-  font-size: 0.813rem;
-}
-
-.transaction-amount {
-  font-weight: 700;
-  color: var(--text);
-}
-
-.text-right {
-  text-align: right;
+@media (max-width: 900px) {
+  .two-column-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 </style>

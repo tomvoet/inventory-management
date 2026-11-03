@@ -2,81 +2,51 @@
   <BaseModal :open="isOpen && !!costData" :title="`${costData?.month} Cost Breakdown`" max-width="600px" @close="close">
 
           <div class="modal-body">
-            <div class="cost-summary">
-              <div class="summary-card total">
+            <div class="summary single">
+              <div class="summary-cell">
                 <div class="summary-label">Total Costs</div>
                 <div class="summary-value">{{ money(totalCosts) }}</div>
               </div>
             </div>
 
-            <div class="cost-breakdown">
-              <div class="cost-item procurement">
-                <div class="cost-header">
-                  <div class="cost-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                      <rect x="4" y="6" width="16" height="14" rx="2" stroke="currentColor" stroke-width="2"/>
-                      <path d="M8 6V4M16 6V4M4 10H20" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                  </div>
-                  <div class="cost-info">
-                    <div class="cost-name">Procurement</div>
-                    <div class="cost-amount">{{ money(costData.procurement) }}</div>
-                  </div>
+            <div class="cost-list">
+              <div class="cost-row">
+                <div class="cost-top">
+                  <span class="cost-name">Procurement</span>
+                  <span class="cost-amount num">{{ money(costData.procurement) }}</span>
                 </div>
-                <div class="cost-percentage">{{ getProcurementPercentage() }}% of total</div>
+                <div class="cost-bar" aria-hidden="true"><span :style="{ width: getProcurementPercentage() + '%' }"></span></div>
+                <div class="cost-pct num">{{ getProcurementPercentage() }}% of total</div>
               </div>
-
-              <div class="cost-item operational">
-                <div class="cost-header">
-                  <div class="cost-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                      <circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="2"/>
-                      <path d="M12 8V12L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                  </div>
-                  <div class="cost-info">
-                    <div class="cost-name">Operational</div>
-                    <div class="cost-amount">{{ money(costData.operational) }}</div>
-                  </div>
+              <div class="cost-row">
+                <div class="cost-top">
+                  <span class="cost-name">Operational</span>
+                  <span class="cost-amount num">{{ money(costData.operational) }}</span>
                 </div>
-                <div class="cost-percentage">{{ getOperationalPercentage() }}% of total</div>
+                <div class="cost-bar" aria-hidden="true"><span :style="{ width: getOperationalPercentage() + '%' }"></span></div>
+                <div class="cost-pct num">{{ getOperationalPercentage() }}% of total</div>
               </div>
-
-              <div class="cost-item labor">
-                <div class="cost-header">
-                  <div class="cost-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                      <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="2"/>
-                      <path d="M6 20C6 16.6863 8.68629 14 12 14C15.3137 14 18 16.6863 18 20" stroke="currentColor" stroke-width="2"/>
-                    </svg>
-                  </div>
-                  <div class="cost-info">
-                    <div class="cost-name">Labor</div>
-                    <div class="cost-amount">{{ money(costData.labor) }}</div>
-                  </div>
+              <div class="cost-row">
+                <div class="cost-top">
+                  <span class="cost-name">Labor</span>
+                  <span class="cost-amount num">{{ money(costData.labor) }}</span>
                 </div>
-                <div class="cost-percentage">{{ getLaborPercentage() }}% of total</div>
+                <div class="cost-bar" aria-hidden="true"><span :style="{ width: getLaborPercentage() + '%' }"></span></div>
+                <div class="cost-pct num">{{ getLaborPercentage() }}% of total</div>
               </div>
-
-              <div class="cost-item overhead">
-                <div class="cost-header">
-                  <div class="cost-icon">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                      <path d="M3 12L5 10M5 10L12 3L19 10M5 10V20C5 20.5523 5.44772 21 6 21H9M19 10L21 12M19 10V20C19 20.5523 18.5523 21 18 21H15M9 21C9 21 9 18 9 16C9 14 10 14 12 14C14 14 15 14 15 16C15 18 15 21 15 21M9 21H15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-                    </svg>
-                  </div>
-                  <div class="cost-info">
-                    <div class="cost-name">Overhead</div>
-                    <div class="cost-amount">{{ money(costData.overhead) }}</div>
-                  </div>
+              <div class="cost-row">
+                <div class="cost-top">
+                  <span class="cost-name">Overhead</span>
+                  <span class="cost-amount num">{{ money(costData.overhead) }}</span>
                 </div>
-                <div class="cost-percentage">{{ getOverheadPercentage() }}% of total</div>
+                <div class="cost-bar" aria-hidden="true"><span :style="{ width: getOverheadPercentage() + '%' }"></span></div>
+                <div class="cost-pct num">{{ getOverheadPercentage() }}% of total</div>
               </div>
             </div>
           </div>
 
           <div class="modal-footer">
-            <button class="btn-secondary" @click="close">Close</button>
+            <button type="button" class="btn-secondary" @click="close">Close</button>
           </div>
   </BaseModal>
 </template>
@@ -136,162 +106,170 @@ const close = () => {
 </script>
 
 <style scoped>
-
-
-
-
-
-
 .modal-body {
   flex: 1;
   overflow-y: auto;
-  padding: 2rem;
+  padding: 20px;
 }
 
-.cost-summary {
-  margin-bottom: 2rem;
+.detail-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
-.summary-card {
-  padding: 1.5rem;
-  border-radius: 10px;
-  text-align: center;
+.detail-title {
+  min-width: 0;
 }
 
-.summary-card.total {
-  background: linear-gradient(135deg, var(--accent-bright) 0%, var(--accent) 100%);
-  color: var(--on-accent);
+.detail-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.3;
+  margin: 0;
+}
+
+.detail-sub {
+  margin-top: 2px;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.summary-cell {
+  background: var(--surface);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
 }
 
 .summary-label {
-  font-size: 0.875rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  opacity: 0.9;
-  margin-bottom: 0.5rem;
+  font-size: 13px;
+  color: var(--muted);
 }
 
 .summary-value {
-  font-size: 2.25rem;
-  font-weight: 700;
+  font-size: 20px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  line-height: 1.2;
 }
 
-.cost-breakdown {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+.summary-note {
+  font-size: 12px;
+  color: var(--muted);
 }
 
-.cost-item {
-  padding: 1.25rem;
-  border-radius: 10px;
-  border: 2px solid;
+.summary-value.neg { color: var(--neg); }
+.summary-value.pos { color: var(--pos); }
+
+.detail-list {
+  margin: 0;
 }
 
-.cost-item.procurement {
-  border-color: var(--info-border);
-  background: var(--accent-soft);
-}
-
-.cost-item.operational {
-  border-color: var(--purple-border);
-  background: var(--purple-soft);
-}
-
-.cost-item.labor {
-  border-color: var(--success-border);
-  background: var(--success-soft);
-}
-
-.cost-item.overhead {
-  border-color: var(--warning-border);
-  background: var(--warning-soft);
-}
-
-.cost-header {
+.detail-row {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  margin-bottom: 0.5rem;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 40px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
 }
 
-.cost-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.detail-row:last-child {
+  border-bottom: 0;
+}
+
+.detail-label {
+  font-size: 13px;
+  color: var(--muted);
   flex-shrink: 0;
 }
 
-.cost-item.procurement .cost-icon {
-  background: var(--accent-bright);
-  color: var(--on-accent);
+.detail-value {
+  font-size: 13.5px;
+  color: var(--ink);
+  text-align: right;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
-.cost-item.operational .cost-icon {
-  background: var(--purple);
-  color: var(--on-accent);
+.detail-value.neg { color: var(--neg); }
+.detail-value.pos { color: var(--pos); }
+
+.modal-footer {
+  padding: 12px 20px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
-.cost-item.labor .cost-icon {
-  background: var(--success);
-  color: var(--on-accent);
+.summary.single {
+  grid-template-columns: minmax(0, 1fr);
 }
 
-.cost-item.overhead .cost-icon {
-  background: var(--warning);
-  color: var(--on-accent);
+.cost-row {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
 }
 
-.cost-info {
-  flex: 1;
+.cost-row:last-child {
+  border-bottom: 0;
+}
+
+.cost-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
 }
 
 .cost-name {
-  font-weight: 600;
-  color: var(--text);
-  font-size: 1rem;
-  margin-bottom: 0.25rem;
+  font-size: 13.5px;
+  color: var(--ink);
 }
 
 .cost-amount {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text);
-}
-
-.cost-percentage {
-  font-size: 0.875rem;
-  color: var(--text-muted);
+  font-size: 14px;
   font-weight: 500;
+  color: var(--ink);
 }
 
-.modal-footer {
-  padding: 1.5rem;
-  border-top: 1px solid var(--border);
-  display: flex;
-  justify-content: flex-end;
+.cost-bar {
+  height: 4px;
+  margin: 8px 0 6px;
+  border-radius: 2px;
+  background: var(--sunken);
+  overflow: hidden;
 }
 
-.btn-secondary {
-  padding: 0.625rem 1.25rem;
-  background: var(--surface-subtle);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-weight: 500;
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 0.15s ease;
-  font-family: inherit;
+.cost-bar span {
+  display: block;
+  height: 100%;
+  background: var(--ink);
 }
 
-.btn-secondary:hover {
-  background: var(--border);
-  border-color: var(--border-strong);
+.cost-pct {
+  font-size: 12px;
+  color: var(--muted);
 }
-
 </style>

@@ -2,70 +2,57 @@
   <BaseModal :open="isOpen && !!backlogItem" :title="t('backlogDetail.title')" max-width="700px" @close="close">
 
           <div class="modal-body">
-            <div class="shortage-header">
-              <div class="shortage-icon">
-                <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-                  <path d="M24 8L24 28M24 34L24 36" stroke="currentColor" stroke-width="3" stroke-linecap="round"/>
-                  <circle cx="24" cy="24" r="18" stroke="currentColor" stroke-width="3"/>
-                </svg>
+            <div class="detail-head">
+              <div class="detail-title">
+                <h4 class="detail-name">{{ translateProductName(backlogItem.item_name) }}</h4>
+                <div class="detail-sub num">{{ t('backlogDetail.sku', { sku: backlogItem.item_sku }) }}</div>
               </div>
-              <div class="shortage-title-section">
-                <h4 class="item-name">{{ translateProductName(backlogItem.item_name) }}</h4>
-                <div class="item-sku">{{ t('backlogDetail.sku', { sku: backlogItem.item_sku }) }}</div>
-              </div>
-              <span class="priority-badge" :class="backlogItem.priority">
+              <span class="badge" :class="backlogItem.priority">
                 {{ t('backlogDetail.priorityLabel', { priority: t(`priority.${backlogItem.priority}`) }) }}
               </span>
             </div>
 
-            <div class="shortage-summary">
-              <div class="summary-card danger">
+            <div class="summary">
+              <div class="summary-cell">
                 <div class="summary-label">{{ t('backlogDetail.shortageAmount') }}</div>
-                <div class="summary-value">{{ t(shortage === 1 ? 'backlog.unit' : 'backlog.units', { count: shortage }) }}</div>
+                <div class="summary-value neg">{{ t(shortage === 1 ? 'backlog.unit' : 'backlog.units', { count: shortage }) }}</div>
               </div>
-              <div class="summary-card warning">
+              <div class="summary-cell">
                 <div class="summary-label">{{ t('backlogDetail.daysDelayed') }}</div>
                 <div class="summary-value">{{ t(backlogItem.days_delayed === 1 ? 'backlog.day' : 'backlog.days', { count: backlogItem.days_delayed }) }}</div>
               </div>
             </div>
 
-            <div class="info-grid">
-              <div class="info-item">
-                <div class="info-label">{{ t('backlogDetail.orderId') }}</div>
-                <div class="info-value order-id">{{ backlogItem.order_id }}</div>
+            <dl class="detail-list">
+              <div class="detail-row">
+                <dt class="detail-label">{{ t('backlogDetail.orderId') }}</dt>
+                <dd class="detail-value num">{{ backlogItem.order_id }}</dd>
               </div>
-
-              <div class="info-item">
-                <div class="info-label">{{ t('backlogDetail.itemSku') }}</div>
-                <div class="info-value sku">{{ backlogItem.item_sku }}</div>
+              <div class="detail-row">
+                <dt class="detail-label">{{ t('backlogDetail.itemSku') }}</dt>
+                <dd class="detail-value num">{{ backlogItem.item_sku }}</dd>
               </div>
-
-              <div class="info-item">
-                <div class="info-label">{{ t('backlogDetail.quantityNeeded') }}</div>
-                <div class="info-value">{{ t(backlogItem.quantity_needed === 1 ? 'backlog.unit' : 'backlog.units', { count: backlogItem.quantity_needed }) }}</div>
+              <div class="detail-row">
+                <dt class="detail-label">{{ t('backlogDetail.quantityNeeded') }}</dt>
+                <dd class="detail-value num">{{ t(backlogItem.quantity_needed === 1 ? 'backlog.unit' : 'backlog.units', { count: backlogItem.quantity_needed }) }}</dd>
               </div>
-
-              <div class="info-item">
-                <div class="info-label">{{ t('backlogDetail.quantityAvailable') }}</div>
-                <div class="info-value">{{ t(backlogItem.quantity_available === 1 ? 'backlog.unit' : 'backlog.units', { count: backlogItem.quantity_available }) }}</div>
+              <div class="detail-row">
+                <dt class="detail-label">{{ t('backlogDetail.quantityAvailable') }}</dt>
+                <dd class="detail-value num">{{ t(backlogItem.quantity_available === 1 ? 'backlog.unit' : 'backlog.units', { count: backlogItem.quantity_available }) }}</dd>
               </div>
-
-              <div class="info-item">
-                <div class="info-label">{{ t('backlogDetail.expectedDate') }}</div>
-                <div class="info-value">{{ formatDate(backlogItem.expected_date) }}</div>
+              <div class="detail-row">
+                <dt class="detail-label">{{ t('backlogDetail.expectedDate') }}</dt>
+                <dd class="detail-value">{{ formatDate(backlogItem.expected_date) }}</dd>
               </div>
-
-              <div class="info-item">
-                <div class="info-label">{{ t('backlogDetail.status') }}</div>
-                <div class="info-value">
-                  <span class="badge danger">{{ t('status.backordered') }}</span>
-                </div>
+              <div class="detail-row">
+                <dt class="detail-label">{{ t('backlogDetail.status') }}</dt>
+                <dd class="detail-value"><span class="badge danger">{{ t('status.backordered') }}</span></dd>
               </div>
-            </div>
+            </dl>
           </div>
 
           <div class="modal-footer">
-            <button class="btn-secondary" @click="close">{{ t('common.close') }}</button>
+            <button type="button" class="btn-secondary" @click="close">{{ t('common.close') }}</button>
           </div>
   </BaseModal>
 </template>
@@ -112,184 +99,120 @@ const formatDate = (dateString) => {
 </script>
 
 <style scoped>
-
-
-
-
-
-
 .modal-body {
   flex: 1;
   overflow-y: auto;
-  padding: 2rem;
+  padding: 20px;
 }
 
-.shortage-header {
+.detail-head {
   display: flex;
-  align-items: center;
-  gap: 1.25rem;
-  padding-bottom: 1.5rem;
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 1.5rem;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
 }
 
-.shortage-icon {
-  width: 64px;
-  height: 64px;
-  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
-  flex-shrink: 0;
-}
-
-.shortage-title-section {
-  flex: 1;
+.detail-title {
   min-width: 0;
 }
 
-.item-name {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--text);
-  margin: 0 0 0.5rem 0;
-}
-
-.item-sku {
-  font-size: 0.875rem;
-  color: var(--text-muted);
-  font-family: 'Monaco', 'Courier New', monospace;
-}
-
-.priority-badge {
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  font-size: 0.875rem;
+.detail-name {
+  font-size: 16px;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.025em;
-  flex-shrink: 0;
+  color: var(--ink);
+  line-height: 1.3;
+  margin: 0;
 }
 
-.priority-badge.high {
-  background: var(--danger-bg);
-  color: var(--danger-text);
+.detail-sub {
+  margin-top: 2px;
+  font-size: 12.5px;
+  color: var(--muted);
 }
 
-.priority-badge.medium {
-  background: var(--warning-bg);
-  color: var(--warning-text);
-}
-
-.priority-badge.low {
-  background: var(--info-bg);
-  color: var(--info-text);
-}
-
-.shortage-summary {
+.summary {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1rem;
-  margin-bottom: 2rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 16px;
 }
 
-.summary-card {
-  padding: 1.25rem;
-  border-radius: 10px;
-  border: 2px solid;
-}
-
-.summary-card.danger {
-  border-color: var(--danger-border);
-  background: var(--danger-soft);
-}
-
-.summary-card.warning {
-  border-color: var(--warning-border);
-  background: var(--warning-soft);
+.summary-cell {
+  background: var(--surface);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
 }
 
 .summary-label {
-  font-size: 0.813rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-muted);
-  margin-bottom: 0.5rem;
+  font-size: 13px;
+  color: var(--muted);
 }
 
 .summary-value {
-  font-size: 1.875rem;
-  font-weight: 700;
-  color: var(--text);
-}
-
-.summary-card.danger .summary-value {
-  color: var(--danger-strong);
-}
-
-.summary-card.warning .summary-value {
-  color: var(--warning);
-}
-
-.info-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1.5rem;
-}
-
-.info-item {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.info-label {
-  font-size: 0.813rem;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-muted);
-}
-
-.info-value {
-  font-size: 0.938rem;
-  color: var(--text);
+  font-size: 20px;
   font-weight: 500;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  line-height: 1.2;
 }
 
-.info-value.order-id,
-.info-value.sku {
-  font-family: 'Monaco', 'Courier New', monospace;
-  color: var(--accent);
+.summary-note {
+  font-size: 12px;
+  color: var(--muted);
 }
+
+.summary-value.neg { color: var(--neg); }
+.summary-value.pos { color: var(--pos); }
+
+.detail-list {
+  margin: 0;
+}
+
+.detail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 40px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.detail-row:last-child {
+  border-bottom: 0;
+}
+
+.detail-label {
+  font-size: 13px;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+
+.detail-value {
+  font-size: 13.5px;
+  color: var(--ink);
+  text-align: right;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.detail-value.neg { color: var(--neg); }
+.detail-value.pos { color: var(--pos); }
 
 .modal-footer {
-  padding: 1.5rem;
-  border-top: 1px solid var(--border);
+  padding: 12px 20px;
+  border-top: 1px solid var(--line);
   display: flex;
   justify-content: flex-end;
-  gap: 0.75rem;
+  gap: 8px;
 }
-
-.btn-secondary {
-  padding: 0.625rem 1.25rem;
-  background: var(--surface-subtle);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-weight: 500;
-  font-size: 0.875rem;
-  color: var(--text-secondary);
-  cursor: pointer;
-  transition: all 0.15s ease;
-  font-family: inherit;
-}
-
-.btn-secondary:hover {
-  background: var(--border);
-  border-color: var(--border-strong);
-}
-
 </style>

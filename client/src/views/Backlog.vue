@@ -13,16 +13,16 @@
       @retry="load"
     >
       <div class="stats-grid">
-        <div class="stat-card danger">
-          <div class="stat-label">{{ t('backlog.highPriority') }}</div>
+        <div class="stat-card">
+          <div class="stat-label stat-dot dot-crit">{{ t('backlog.highPriority') }}</div>
           <div class="stat-value">{{ getBacklogByPriority('high').length }}</div>
         </div>
-        <div class="stat-card warning">
-          <div class="stat-label">{{ t('backlog.mediumPriority') }}</div>
+        <div class="stat-card">
+          <div class="stat-label stat-dot dot-warn">{{ t('backlog.mediumPriority') }}</div>
           <div class="stat-value">{{ getBacklogByPriority('medium').length }}</div>
         </div>
-        <div class="stat-card info">
-          <div class="stat-label">{{ t('backlog.lowPriority') }}</div>
+        <div class="stat-card">
+          <div class="stat-label stat-dot dot-accent">{{ t('backlog.lowPriority') }}</div>
           <div class="stat-value">{{ getBacklogByPriority('low').length }}</div>
         </div>
         <div class="stat-card">
@@ -35,39 +35,35 @@
         <div class="card-header">
           <h3 class="card-title">{{ t('backlog.itemsTitle') }}</h3>
         </div>
-        <div v-if="backlogItems.length === 0" style="padding: 3rem; text-align: center;">
-          <p style="font-size: 1.125rem; color: var(--success); font-weight: 600;">
-            {{ t('backlog.empty') }}
-          </p>
+        <div v-if="backlogItems.length === 0" class="empty">
+          <span class="badge success">{{ t('backlog.empty') }}</span>
         </div>
         <div v-else class="table-container">
-          <table>
+          <table class="backlog-table">
             <thead>
               <tr>
                 <th>{{ t('backlog.columns.orderId') }}</th>
                 <th>{{ t('backlog.columns.sku') }}</th>
                 <th>{{ t('backlog.columns.itemName') }}</th>
-                <th>{{ t('backlog.columns.quantityNeeded') }}</th>
-                <th>{{ t('backlog.columns.quantityAvailable') }}</th>
-                <th>{{ t('backlog.columns.shortage') }}</th>
-                <th>{{ t('backlog.columns.daysDelayed') }}</th>
+                <th class="num">{{ t('backlog.columns.quantityNeeded') }}</th>
+                <th class="num">{{ t('backlog.columns.quantityAvailable') }}</th>
+                <th class="num">{{ t('backlog.columns.shortage') }}</th>
+                <th class="num">{{ t('backlog.columns.daysDelayed') }}</th>
                 <th>{{ t('backlog.columns.priority') }}</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="item in backlogItems" :key="item.id">
-                <td><strong>{{ item.order_id }}</strong></td>
-                <td><strong>{{ item.item_sku }}</strong></td>
+                <td><span class="num order-id">{{ item.order_id }}</span></td>
+                <td><span class="num">{{ item.item_sku }}</span></td>
                 <td>{{ translateProductName(item.item_name) }}</td>
-                <td>{{ item.quantity_needed }}</td>
-                <td>{{ item.quantity_available }}</td>
-                <td>
-                  <span class="badge danger">
-                    {{ t('backlog.unitsShort', { count: item.quantity_needed - item.quantity_available }) }}
-                  </span>
+                <td class="num">{{ item.quantity_needed }}</td>
+                <td class="num">{{ item.quantity_available }}</td>
+                <td class="num shortage">
+                  {{ t('backlog.unitsShort', { count: item.quantity_needed - item.quantity_available }) }}
                 </td>
-                <td>
-                  <span :style="{ color: item.days_delayed > 7 ? 'var(--danger)' : 'var(--warning)' }">
+                <td class="num" :class="item.days_delayed > 7 ? 'late' : 'delayed'">
+                  <span>
                     {{ t(item.days_delayed === 1 ? 'backlog.day' : 'backlog.days', { count: item.days_delayed }) }}
                   </span>
                 </td>
@@ -133,3 +129,45 @@ watch([selectedLocation, selectedCategory], loadDebounced)
 
 onMounted(load)
 </script>
+
+<style scoped>
+.order-id {
+  color: var(--ink);
+}
+
+.shortage,
+.late {
+  color: var(--neg);
+}
+
+.delayed {
+  color: var(--text);
+}
+
+.empty {
+  padding: 32px 18px;
+  text-align: center;
+}
+
+.backlog-table {
+  min-width: 760px;
+}
+
+.stat-dot {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.stat-dot::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--seg-gray);
+}
+
+.dot-accent::before { background: var(--accent); }
+.dot-warn::before { background: var(--dot-warn); }
+.dot-crit::before { background: var(--dot-crit); }
+</style>

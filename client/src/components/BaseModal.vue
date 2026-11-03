@@ -15,8 +15,8 @@
           <div class="modal-header">
             <h3 :id="titleId" class="modal-title">{{ title }}</h3>
             <button type="button" class="close-button" :aria-label="t('common.close')" @click="close">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
-                <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <svg width="16" height="16" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+                <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>
               </svg>
             </button>
           </div>
@@ -100,15 +100,17 @@ onBeforeUnmount(() => {
   align-items: center;
   justify-content: center;
   z-index: 2000;
-  padding: 1rem;
+  padding: 16px;
 }
 
 .modal-container {
   background: var(--surface);
-  border-radius: 12px;
-  box-shadow: 0 20px 50px var(--shadow-lg);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  /* The only shadow in the app: modals float above the page */
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
   width: 100%;
-  max-height: 90vh;
+  max-height: calc(100vh - 32px);
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -122,44 +124,47 @@ onBeforeUnmount(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 1.5rem;
-  border-bottom: 1px solid var(--border);
+  gap: 12px;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--line);
 }
 
 .modal-title {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--text);
-  letter-spacing: -0.025em;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1.3;
   margin: 0;
 }
 
 .close-button {
-  background: none;
-  border: none;
-  color: var(--text-muted);
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  margin-right: -6px;
+  background: transparent;
+  border: 0;
+  color: var(--muted);
   cursor: pointer;
-  padding: 0.5rem;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 6px;
-  transition: all 0.15s ease;
 }
 
 .close-button:hover {
-  background: var(--surface-subtle);
-  color: var(--text);
+  background: var(--sunken);
+  color: var(--ink);
 }
 
 .close-button:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 3px var(--focus-ring);
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
 }
 
 .modal-enter-active,
 .modal-leave-active {
-  transition: opacity 0.2s ease;
+  transition: opacity 0.12s ease;
 }
 
 .modal-enter-from,
@@ -167,13 +172,13 @@ onBeforeUnmount(() => {
   opacity: 0;
 }
 
-.modal-enter-active .modal-container,
-.modal-leave-active .modal-container {
-  transition: transform 0.2s ease;
-}
+@media (max-width: 480px) {
+  .modal-overlay {
+    padding: 8px;
+  }
 
-.modal-enter-from .modal-container,
-.modal-leave-to .modal-container {
-  transform: scale(0.95);
+  .modal-container {
+    max-height: calc(100vh - 16px);
+  }
 }
 </style>

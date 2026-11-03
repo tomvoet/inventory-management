@@ -2,6 +2,14 @@ import axios from 'axios'
 
 const API_BASE_URL = 'http://localhost:8001/api'
 
+const buildOrderParams = (filters) => {
+  const params = new URLSearchParams()
+  for (const key of ['warehouse', 'category', 'status', 'month']) {
+    if (filters[key] && filters[key] !== 'all') params.append(key, filters[key])
+  }
+  return params.toString()
+}
+
 export const api = {
   async getInventory(filters = {}) {
     const params = new URLSearchParams()
@@ -61,6 +69,16 @@ export const api = {
     if (filters.month && filters.month !== 'all') params.append('month', filters.month)
 
     const response = await axios.get(`${API_BASE_URL}/dashboard/summary?${params.toString()}`)
+    return response.data
+  },
+
+  async getQuarterlyReports(filters = {}) {
+    const response = await axios.get(`${API_BASE_URL}/reports/quarterly?${buildOrderParams(filters)}`)
+    return response.data
+  },
+
+  async getMonthlyTrends(filters = {}) {
+    const response = await axios.get(`${API_BASE_URL}/reports/monthly-trends?${buildOrderParams(filters)}`)
     return response.data
   },
 

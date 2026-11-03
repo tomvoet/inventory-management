@@ -1,16 +1,5 @@
 <template>
-  <Teleport to="body">
-    <Transition name="modal">
-      <div v-if="isOpen" class="modal-overlay" @click="close">
-        <div class="modal-container tasks-modal-container" @click.stop>
-          <div class="modal-header">
-            <h3 class="modal-title">{{ t('tasks.title') }}</h3>
-            <button class="close-button" @click="close">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M15 5L5 15M5 5L15 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-              </svg>
-            </button>
-          </div>
+  <BaseModal :open="isOpen" :title="t('tasks.title')" max-width="900px" @close="close">
 
           <div class="modal-body">
             <!-- Add Task Form -->
@@ -61,6 +50,8 @@
               </div>
             </div>
 
+            <div v-if="error" class="task-error" role="alert">{{ error }}</div>
+
             <div class="tasks-divider"></div>
 
             <!-- Tasks List -->
@@ -78,14 +69,15 @@
                 <div class="task-header">
                   <div class="task-check-title">
                     <input
+                      :id="`task-check-${task.id}`"
                       type="checkbox"
                       :checked="task.status === 'completed'"
                       @change="$emit('toggle-task', task.id)"
                       class="task-checkbox"
                     />
-                    <span class="task-title" @click="$emit('toggle-task', task.id)">{{ task.title }}</span>
+                    <label :for="`task-check-${task.id}`" class="task-title">{{ task.title }}</label>
                   </div>
-                  <button @click="$emit('delete-task', task.id)" class="task-delete-btn" title="Delete task">
+                  <button @click="$emit('delete-task', task.id)" class="task-delete-btn" :title="t('tasks.deleteTask')" :aria-label="t('tasks.deleteTask')">
                     ×
                   </button>
                 </div>
@@ -112,18 +104,17 @@
           <div class="modal-footer">
             <button class="btn-secondary" @click="close">{{ t('profileDetails.close') }}</button>
           </div>
-        </div>
-      </div>
-    </Transition>
-  </Teleport>
+  </BaseModal>
 </template>
 
 <script>
-import { ref, computed } from 'vue'
+import BaseModal from './BaseModal.vue'
+import { ref, computed, watch } from 'vue'
 import { useI18n } from '../composables/useI18n'
 
 export default {
   name: 'TasksModal',
+  components: { BaseModal },
   props: {
     isOpen: {
       type: Boolean,
@@ -132,6 +123,10 @@ export default {
     tasks: {
       type: Array,
       default: () => []
+    },
+    error: {
+      type: String,
+      default: ''
     }
   },
   emits: ['close', 'add-task', 'delete-task', 'toggle-task'],
@@ -159,13 +154,13 @@ export default {
           priority: newTask.value.priority,
           dueDate: newTask.value.dueDate
         })
-        newTask.value = {
-          title: '',
-          priority: 'medium',
-          dueDate: ''
-        }
       }
     }
+
+    // Reset the form only once the new task actually appears, so a failed add keeps the input
+    watch(() => props.tasks.length, (len, prev) => {
+      if (len > prev) newTask.value = { title: '', priority: 'medium', dueDate: '' }
+    })
 
     const formatDueDate = (dateString) => {
       const date = new Date(dateString)
@@ -245,66 +240,12 @@ export default {
 </script>
 
 <style scoped>
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: var(--overlay);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
 
-.modal-container {
-  background: var(--surface);
-  border-radius: 12px;
-  box-shadow: 0 20px 60px var(--shadow-xl);
-  width: 90%;
-  max-width: 700px;
-  max-height: 85vh;
-  display: flex;
-  flex-direction: column;
-}
 
-.tasks-modal-container {
-  max-width: 900px;
-}
 
-.modal-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem 2rem;
-  border-bottom: 2px solid var(--border);
-}
 
-.modal-title {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--text);
-  margin: 0;
-}
 
-.close-button {
-  background: none;
-  border: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  padding: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-}
 
-.close-button:hover {
-  background: var(--surface-subtle);
-  color: var(--text);
-}
 
 .modal-body {
   padding: 2rem;
@@ -336,6 +277,16 @@ export default {
 }
 
 /* Task Form */
+.task-error {
+  margin-bottom: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid var(--danger-border);
+  border-radius: 6px;
+  background: var(--danger-soft);
+  color: var(--danger-text);
+  font-size: 0.875rem;
+}
+
 .task-form {
   background: var(--surface-muted);
   border-radius: 12px;
@@ -385,10 +336,11 @@ label {
   font-family: inherit;
 }
 
-.task-input:focus,
-.task-select:focus {
+.task-input:focus-visible,
+.task-select:focus-visible {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--accent-bright);
+  box-shadow: 0 0 0 3px var(--focus-ring);
 }
 
 .task-select {
@@ -502,7 +454,7 @@ label {
 
 .task-item.completed .task-title {
   text-decoration: line-through;
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .task-delete-btn {
@@ -567,7 +519,7 @@ label {
 }
 
 .task-due-date svg {
-  color: var(--text-faint);
+  color: var(--text-muted);
 }
 
 .status-badge {
@@ -598,24 +550,4 @@ label {
   color: var(--success-text);
 }
 
-/* Modal transitions */
-.modal-enter-active,
-.modal-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.modal-enter-active .modal-container,
-.modal-leave-active .modal-container {
-  transition: transform 0.3s ease;
-}
-
-.modal-enter-from,
-.modal-leave-to {
-  opacity: 0;
-}
-
-.modal-enter-from .modal-container,
-.modal-leave-to .modal-container {
-  transform: scale(0.9);
-}
 </style>

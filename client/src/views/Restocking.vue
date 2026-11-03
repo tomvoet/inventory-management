@@ -6,7 +6,7 @@
     </div>
 
     <div v-if="loading" class="loading">{{ t('common.loading') }}</div>
-    <div v-else-if="error" class="error">{{ error }}</div>
+    <div v-else-if="error" class="error" role="alert">{{ error }}</div>
     <div v-else>
       <div class="card budget-card">
         <div class="card-header">
@@ -51,8 +51,8 @@
         </div>
       </div>
 
-      <div v-if="submitError" class="error">{{ submitError }}</div>
-      <div v-if="submittedOrder" class="card success-card">
+      <div v-if="submitError" class="error" role="alert">{{ submitError }}</div>
+      <div v-if="submittedOrder" class="card success-card" role="status">
         <strong>{{ t('restocking.successTitle', { orderNumber: submittedOrder.order_number }) }}</strong>
         <span>{{ t('restocking.successDetail', { date: submittedOrder.expected_delivery }) }}</span>
         <router-link to="/orders">{{ t('restocking.viewOrders') }}</router-link>
@@ -194,7 +194,8 @@ export default {
         forecasts.value = await api.getDemandForecasts()
         budget.value = Math.round(maxBudget.value / 2 / 100) * 100
       } catch (err) {
-        error.value = t('restocking.loadFailed') + ': ' + err.message
+        error.value = t('restocking.loadFailed')
+        console.error('Failed to load forecasts:', err)
       } finally {
         loading.value = false
       }

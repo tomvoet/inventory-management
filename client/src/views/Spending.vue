@@ -5,9 +5,13 @@
       <p>{{ t('finance.description') }}</p>
     </div>
 
-    <div v-if="loading" class="loading">{{ t('common.loading') }}</div>
-    <div v-else-if="error" class="error">{{ error }}</div>
-    <div v-else>
+    <DataState
+      :loading="loading"
+      :refreshing="refreshing"
+      :error="error"
+      :loaded="loaded"
+      @retry="load"
+    >
       <!-- Revenue & Financial KPIs -->
       <div class="stats-grid-finance">
         <div class="stat-card revenue-card">
@@ -47,17 +51,17 @@
         <div class="chart-container">
           <div class="bar-chart">
             <div class="y-axis">
-              <span>{{ currencySymbol }}{{ maxRevenueValue }}K</span>
-              <span>{{ currencySymbol }}{{ Math.round(maxRevenueValue * 0.75) }}K</span>
-              <span>{{ currencySymbol }}{{ Math.round(maxRevenueValue * 0.5) }}K</span>
-              <span>{{ currencySymbol }}{{ Math.round(maxRevenueValue * 0.25) }}K</span>
-              <span>{{ currencySymbol }}0</span>
+              <span>{{ formatCompact(maxRevenueValue * 1000) }}</span>
+              <span>{{ formatCompact(maxRevenueValue * 750) }}</span>
+              <span>{{ formatCompact(maxRevenueValue * 500) }}</span>
+              <span>{{ formatCompact(maxRevenueValue * 250) }}</span>
+              <span>{{ formatCompact(0) }}</span>
             </div>
             <div class="chart-area">
               <div v-for="month in monthlyRevenue" :key="month.month" class="bar-group-revenue">
                 <div class="revenue-bars">
-                  <div class="revenue-bar" :style="{ height: getRevenueBarHeight(month.revenue) + '%' }" :title="`Revenue: ${currencySymbol}${month.revenue.toLocaleString()}`"></div>
-                  <div class="cost-bar" :style="{ height: getRevenueBarHeight(month.costs) + '%' }" :title="`Costs: ${currencySymbol}${month.costs.toLocaleString()}`"></div>
+                  <div class="revenue-bar" :style="{ height: getRevenueBarHeight(month.revenue) + '%' }" :title="`Revenue: ${formatCurrency(month.revenue)}`"></div>
+                  <div class="cost-bar" :style="{ height: getRevenueBarHeight(month.costs) + '%' }" :title="`Costs: ${formatCurrency(month.costs)}`"></div>
                 </div>
                 <span class="bar-label">{{ translateMonth(month.month) }}</span>
               </div>
@@ -80,21 +84,21 @@
         <div class="chart-container">
           <div class="bar-chart">
             <div class="y-axis">
-              <span>{{ currencySymbol }}25K</span>
-              <span>{{ currencySymbol }}20K</span>
-              <span>{{ currencySymbol }}15K</span>
-              <span>{{ currencySymbol }}10K</span>
-              <span>{{ currencySymbol }}5K</span>
-              <span>{{ currencySymbol }}0</span>
+              <span>{{ formatCompact(25000) }}</span>
+              <span>{{ formatCompact(20000) }}</span>
+              <span>{{ formatCompact(15000) }}</span>
+              <span>{{ formatCompact(10000) }}</span>
+              <span>{{ formatCompact(5000) }}</span>
+              <span>{{ formatCompact(0) }}</span>
             </div>
             <div class="chart-area">
               <div v-for="month in monthlySpending" :key="month.month" class="bar-group">
-                <div class="stacked-bar" @click="showCostDetail(month)">
-                  <div class="bar-segment procurement" :style="{ height: getBarHeight(month.procurement) + '%' }" :title="`Procurement: ${currencySymbol}${month.procurement.toLocaleString()}`"></div>
-                  <div class="bar-segment operational" :style="{ height: getBarHeight(month.operational) + '%' }" :title="`Operational: ${currencySymbol}${month.operational.toLocaleString()}`"></div>
-                  <div class="bar-segment labor" :style="{ height: getBarHeight(month.labor) + '%' }" :title="`Labor: ${currencySymbol}${month.labor.toLocaleString()}`"></div>
-                  <div class="bar-segment overhead" :style="{ height: getBarHeight(month.overhead) + '%' }" :title="`Overhead: ${currencySymbol}${month.overhead.toLocaleString()}`"></div>
-                </div>
+                <button type="button" class="stacked-bar" :aria-label="`${month.month} - ${t('common.viewDetails')}`" @click="showCostDetail(month)">
+                  <div class="bar-segment procurement" :style="{ height: getBarHeight(month.procurement) + '%' }" :title="`Procurement: ${formatCurrency(month.procurement)}`"></div>
+                  <div class="bar-segment operational" :style="{ height: getBarHeight(month.operational) + '%' }" :title="`Operational: ${formatCurrency(month.operational)}`"></div>
+                  <div class="bar-segment labor" :style="{ height: getBarHeight(month.labor) + '%' }" :title="`Labor: ${formatCurrency(month.labor)}`"></div>
+                  <div class="bar-segment overhead" :style="{ height: getBarHeight(month.overhead) + '%' }" :title="`Overhead: ${formatCurrency(month.overhead)}`"></div>
+                </button>
                 <span class="bar-label">{{ translateMonth(month.month) }}</span>
               </div>
             </div>
@@ -112,7 +116,7 @@
             <div v-for="category in categorySpending" :key="category.category" class="category-item">
               <div class="category-info">
                 <div class="category-name">{{ translateCategory(category.category) }}</div>
-                <div class="category-amount">{{ currencySymbol }}{{ category.amount.toLocaleString() }}</div>
+                <div class="category-amount">{{ formatCurrency(category.amount) }}</div>
               </div>
               <div class="category-bar-container">
                 <div class="category-bar" :style="{ width: category.percentage + '%' }"></div>
@@ -148,20 +152,23 @@
                   v-for="transaction in recentTransactions"
                   :key="transaction.id"
                   class="clickable-row"
+                  tabindex="0"
                   @click="handleTransactionClick(transaction)"
+                  @keydown.enter.self.prevent="handleTransactionClick(transaction)"
+                  @keydown.space.self.prevent="handleTransactionClick(transaction)"
                 >
                   <td class="transaction-id">{{ transaction.id.toString().padStart(3, '0') }}</td>
                   <td class="transaction-description">{{ transaction.description }}</td>
                   <td class="transaction-vendor">{{ transaction.vendor }}</td>
                   <td class="transaction-date">{{ formatDateShort(transaction.date) }}</td>
-                  <td class="transaction-amount text-right">{{ currencySymbol }}{{ transaction.amount.toLocaleString() }}</td>
+                  <td class="transaction-amount text-right">{{ formatCurrency(transaction.amount) }}</td>
                 </tr>
               </tbody>
             </table>
           </div>
         </div>
       </div>
-    </div>
+    </DataState>
 
     <CostDetailModal
       :is-open="showCostModal"
@@ -176,18 +183,19 @@ import { ref, onMounted, watch, computed } from 'vue'
 import { api } from '../api'
 import { useFilters } from '../composables/useFilters'
 import { useI18n } from '../composables/useI18n'
-import { formatCurrency as formatCurrencyUtil } from '../utils/currency'
+import { formatCurrency as formatCurrencyUtil, formatCompactCurrency } from '../utils/currency'
 import CostDetailModal from '../components/CostDetailModal.vue'
+import DataState from '../components/DataState.vue'
+import { useDataLoader } from '../composables/useDataLoader'
 
 export default {
   name: 'Spending',
   components: {
-    CostDetailModal
+    CostDetailModal,
+    DataState
   },
   setup() {
     const { t, currentCurrency } = useI18n()
-    const loading = ref(true)
-    const error = ref(null)
     const allMonthlySpending = ref([])
     const allCategorySpending = ref([])
     const allTransactions = ref([])
@@ -347,41 +355,29 @@ export default {
       return Math.ceil(max / 1000) // Return in K
     })
 
-    const loadData = async () => {
-      try {
-        loading.value = true
-        const [summaryRes, monthlyRes, categoryRes, transactionsRes, ordersRes] = await Promise.all([
-          api.getSpendingSummary(),
-          api.getMonthlySpending(),
-          api.getCategorySpending(),
-          api.getTransactions(),
-          api.getOrders()
-        ])
-
+    // Period filtering is client-side, so no refetch on filter change
+    const { loading, refreshing, error, loaded, load } = useDataLoader(
+      () => Promise.all([
+        api.getSpendingSummary(),
+        api.getMonthlySpending(),
+        api.getCategorySpending(),
+        api.getTransactions(),
+        api.getOrders()
+      ]),
+      ([summaryRes, monthlyRes, categoryRes, transactionsRes, ordersRes]) => {
         summaryData.value = summaryRes
         allMonthlySpending.value = monthlyRes
         allCategorySpending.value = categoryRes
         allTransactions.value = transactionsRes
         allOrders.value = ordersRes
-      } catch (err) {
-        error.value = 'Failed to load financial data: ' + err.message
-      } finally {
-        loading.value = false
       }
-    }
-
-    // Watch for period filter changes
-    watch([selectedPeriod], () => {
-      // Data will automatically update via computed properties
-    })
+    )
 
     const formatCurrency = (value) => {
       return formatCurrencyUtil(value, currentCurrency.value)
     }
 
-    const currencySymbol = computed(() => {
-      return currentCurrency.value === 'JPY' ? '¥' : '$'
-    })
+    const formatCompact = (value) => formatCompactCurrency(value, currentCurrency.value)
 
     const getBarHeight = (value) => {
       const maxValue = 25000
@@ -448,8 +444,7 @@ export default {
     }
 
     const handleTransactionClick = (transaction) => {
-      console.log('Transaction clicked:', transaction)
-      alert(`Transaction Details:\n\nID: ${transaction.id}\nDescription: ${transaction.description}\nVendor: ${transaction.vendor}\nDate: ${formatDateShort(transaction.date)}\nAmount: $${transaction.amount.toLocaleString()}`)
+      alert(`Transaction Details:\n\nID: ${transaction.id}\nDescription: ${transaction.description}\nVendor: ${transaction.vendor}\nDate: ${formatDateShort(transaction.date)}\nAmount: ${formatCurrency(transaction.amount)}`)
     }
 
     const showCostDetail = (monthData) => {
@@ -457,12 +452,15 @@ export default {
       showCostModal.value = true
     }
 
-    onMounted(loadData)
+    onMounted(load)
 
     return {
       t,
       loading,
+      refreshing,
       error,
+      loaded,
+      load,
       summary,
       monthlySpending,
       categorySpending,
@@ -474,7 +472,7 @@ export default {
       monthlyRevenue,
       maxRevenueValue,
       formatCurrency,
-      currencySymbol,
+      formatCompact,
       getBarHeight,
       getRevenueBarHeight,
       formatDate,
@@ -625,7 +623,7 @@ export default {
   justify-content: space-between;
   padding-right: 1rem;
   font-size: 0.75rem;
-  color: var(--text-faint);
+  color: var(--text-muted);
   border-right: 1px solid var(--border);
 }
 
@@ -646,13 +644,16 @@ export default {
 }
 
 .stacked-bar {
+  background: none;
+  border: 0;
+  font: inherit;
+  padding: 0 0 2rem;
   width: 100%;
   max-width: 60px;
   display: flex;
   flex-direction: column-reverse;
   align-items: stretch;
   height: 100%;
-  padding-bottom: 2rem;
   cursor: pointer;
   transition: opacity 0.2s ease;
 }

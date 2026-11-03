@@ -241,6 +241,7 @@ export default {
 
   // Filters
   filters: {
+    reset: 'Reset all filters',
     timePeriod: 'Time Period',
     location: 'Location',
     category: 'Category',
@@ -346,6 +347,11 @@ export default {
 
   // Tasks Modal
   tasks: {
+    deleteTask: 'Delete task',
+    loadFailed: 'Could not load your tasks.',
+    addFailed: 'Could not add the task. Please try again.',
+    deleteFailed: 'Could not delete the task. Please try again.',
+    toggleFailed: 'Could not update the task. Please try again.',
     title: 'My Tasks',
     taskTitle: 'Task Title',
     taskTitlePlaceholder: 'Enter task title...',
@@ -364,6 +370,9 @@ export default {
 
   // Common
   common: {
+    loadError: 'Could not load data. Please try again.',
+    retry: 'Retry',
+    refreshing: 'Updating...',
     loading: 'Loading...',
     error: 'Error',
     noData: 'No data available',

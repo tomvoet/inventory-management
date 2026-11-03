@@ -48,7 +48,7 @@
           <LanguageSwitcher />
           <ProfileMenu
             @show-profile-details="showProfileDetails = true"
-            @show-tasks="showTasks = true"
+            @show-tasks="openTasks"
           />
         </div>
       </div>
@@ -66,6 +66,7 @@
     <TasksModal
       :is-open="showTasks"
       :tasks="tasks"
+      :error="taskError"
       @close="showTasks = false"
       @add-task="addTask"
       @delete-task="deleteTask"
@@ -105,6 +106,13 @@ export default {
     const showProfileDetails = ref(false)
     const showTasks = ref(false)
     const apiTasks = ref([])
+    const taskError = ref('')
+
+    // Errors from a previous session of the modal shouldn't greet the user on reopen
+    const openTasks = () => {
+      taskError.value = ''
+      showTasks.value = true
+    }
 
     // Merge mock tasks from currentUser with API tasks
     const tasks = computed(() => {
@@ -116,21 +124,25 @@ export default {
         apiTasks.value = await api.getTasks()
       } catch (err) {
         console.error('Failed to load tasks:', err)
+        taskError.value = t('tasks.loadFailed')
       }
     }
 
     const addTask = async (taskData) => {
       try {
+        taskError.value = ''
         const newTask = await api.createTask(taskData)
         // Add new task to the beginning of the array
         apiTasks.value.unshift(newTask)
       } catch (err) {
         console.error('Failed to add task:', err)
+        taskError.value = t('tasks.addFailed')
       }
     }
 
     const deleteTask = async (taskId) => {
       try {
+        taskError.value = ''
         // Check if it's a mock task (from currentUser)
         const isMockTask = currentUser.value.tasks.some(t => t.id === taskId)
 
@@ -147,11 +159,13 @@ export default {
         }
       } catch (err) {
         console.error('Failed to delete task:', err)
+        taskError.value = t('tasks.deleteFailed')
       }
     }
 
     const toggleTask = async (taskId) => {
       try {
+        taskError.value = ''
         // Check if it's a mock task (from currentUser)
         const mockTask = currentUser.value.tasks.find(t => t.id === taskId)
 
@@ -163,11 +177,13 @@ export default {
           const updatedTask = await api.toggleTask(taskId)
           const index = apiTasks.value.findIndex(t => t.id === taskId)
           if (index !== -1) {
-            apiTasks.value[index] = updatedTask
+            // Merge so a partial PATCH response can't drop fields like title
+            apiTasks.value[index] = { ...apiTasks.value[index], ...updatedTask }
           }
         }
       } catch (err) {
         console.error('Failed to toggle task:', err)
+        taskError.value = t('tasks.toggleFailed')
       }
     }
 
@@ -191,7 +207,9 @@ export default {
       themeLabel,
       showProfileDetails,
       showTasks,
+      openTasks,
       tasks,
+      taskError,
       addTask,
       deleteTask,
       toggleTask
@@ -456,6 +474,12 @@ body {
 }
 
 .nav-tabs a:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.clickable-row:focus-visible,
+.stacked-bar:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: -2px;
 }

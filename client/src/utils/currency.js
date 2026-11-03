@@ -26,3 +26,15 @@ export function convertAmount(amount, currency = 'USD') {
   }
   return amount
 }
+
+// Abbreviated amounts for chart axes and KPI cards, e.g. $12K, ¥1.8M
+export function formatCompactCurrency(amount, currency = 'USD') {
+  const value = Math.abs(convertAmount(amount, currency))
+  const sign = amount < 0 ? '-' : ''
+  const symbol = currency === 'JPY' ? '¥' : '$'
+  const trim = (n) => n.toFixed(1).replace(/\.0$/, '')
+  if (value >= 1e9) return `${sign}${symbol}${trim(value / 1e9)}B`
+  if (value >= 1e6) return `${sign}${symbol}${trim(value / 1e6)}M`
+  if (value >= 1e3) return `${sign}${symbol}${trim(value / 1e3)}K`
+  return `${sign}${symbol}${Math.round(value)}`
+}

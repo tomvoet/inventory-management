@@ -1,12 +1,22 @@
-from fastapi import FastAPI, HTTPException
+import math
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import date, timedelta
 from threading import Lock
-from typing import List, Optional
-from pydantic import BaseModel, Field
+from typing import Annotated, List, Literal, Optional
+from pydantic import BaseModel, Field, StringConstraints
 from mock_data import inventory_items, orders, demand_forecasts, backlog_items, spending_summary, monthly_spending, category_spending, recent_transactions, purchase_orders
 
 app = FastAPI(title="Factory Inventory Management System")
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    # Python's json parser accepts Infinity/NaN, and echoing them back in the 422 body would crash serialization
+    finite_floats = {float: lambda f: f if math.isfinite(f) else str(f)}
+    return JSONResponse(status_code=422, content={"detail": jsonable_encoder(exc.errors(), custom_encoder=finite_floats)})
 
 # Quarter mapping for date filtering
 QUARTER_MAP = {
@@ -49,12 +59,12 @@ def apply_filters(items: list, warehouse: Optional[str] = None, category: Option
     return filtered
 
 # CORS middleware
+# The API has no auth, so only the local Vite dev server may call it from a browser
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_methods=["GET", "POST", "PATCH", "DELETE"],
+    allow_headers=["Content-Type"],
 )
 
 # Data models
@@ -124,14 +134,22 @@ class CreatePurchaseOrderRequest(BaseModel):
     expected_delivery_date: str
     notes: Optional[str] = None
 
+# Bounds keep the unauthenticated write endpoints from growing memory without limit
+MAX_RESTOCK_QUANTITY = 100_000
+MAX_RESTOCK_BUDGET = 100_000_000
+MAX_RESTOCK_ITEMS = 50
+MAX_RESTOCK_ORDERS = 1000
+MAX_TASKS = 500
+
 class RestockItemRequest(BaseModel):
     # Clients may send name/cost/lead time too; they're ignored in favour of the forecast data
     item_sku: str
-    quantity: int = Field(gt=0)
+    quantity: int = Field(gt=0, le=MAX_RESTOCK_QUANTITY)
 
 class CreateRestockOrderRequest(BaseModel):
-    budget: float = Field(ge=0)
-    items: List[RestockItemRequest]
+    # allow_inf_nan=False stops a JSON `Infinity` budget from bypassing the budget check
+    budget: float = Field(ge=0, le=MAX_RESTOCK_BUDGET, allow_inf_nan=False)
+    items: List[RestockItemRequest] = Field(max_length=MAX_RESTOCK_ITEMS)
 
 class RestockItem(BaseModel):
     item_sku: str
@@ -154,6 +172,24 @@ class RestockOrder(BaseModel):
 # Submitted restocking orders live only in memory and reset on server restart
 restocking_orders: List[dict] = []
 restocking_orders_lock = Lock()
+
+class TaskCreateRequest(BaseModel):
+    title: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=200)]
+    priority: Literal["high", "medium", "low"] = "medium"
+    dueDate: str = Field(pattern=r"^\d{4}-\d{2}-\d{2}$")
+
+class Task(BaseModel):
+    id: str
+    title: str
+    priority: str
+    dueDate: str
+    status: Literal["pending", "completed"]
+
+# Tasks created via the API live only in memory; the client merges them with the profile's mock tasks
+tasks: List[dict] = []
+tasks_lock = Lock()
+# Monotonic counter so a deleted task's id is never reused
+task_id_counter = 0
 
 # API endpoints
 @app.get("/")
@@ -381,6 +417,8 @@ def create_restocking_order(request: CreateRestockOrderRequest):
     today = date.today()
     # Sync endpoints run in a threadpool; lock so concurrent POSTs can't share an order number
     with restocking_orders_lock:
+        if len(restocking_orders) >= MAX_RESTOCK_ORDERS:
+            raise HTTPException(status_code=409, detail="Restocking order limit reached")
         sequence = len(restocking_orders) + 1
         order = {
             "id": str(sequence),
@@ -396,6 +434,51 @@ def create_restocking_order(request: CreateRestockOrderRequest):
         restocking_orders.append(order)
     return order
 
+def _find_task(task_id: str) -> dict:
+    task = next((t for t in tasks if t["id"] == task_id), None)
+    if task is None:
+        raise HTTPException(status_code=404, detail="Task not found")
+    return task
+
+@app.get("/api/tasks", response_model=List[Task])
+def get_tasks():
+    """Get tasks created via the API, newest first"""
+    return list(reversed(tasks))
+
+@app.post("/api/tasks", response_model=Task, status_code=201)
+def create_task(request: TaskCreateRequest):
+    """Create a pending task"""
+    global task_id_counter
+    with tasks_lock:
+        if len(tasks) >= MAX_TASKS:
+            raise HTTPException(status_code=409, detail="Task limit reached")
+        task_id_counter += 1
+        # String ids can't collide with the numeric ids of the profile's mock tasks
+        task = {
+            "id": f"task-{task_id_counter}",
+            "title": request.title,
+            "priority": request.priority,
+            "dueDate": request.dueDate,
+            "status": "pending",
+        }
+        tasks.append(task)
+    return task
+
+@app.patch("/api/tasks/{task_id}", response_model=Task)
+def toggle_task(task_id: str):
+    """Toggle a task between pending and completed"""
+    with tasks_lock:
+        task = _find_task(task_id)
+        task["status"] = "completed" if task["status"] == "pending" else "pending"
+    return task
+
+@app.delete("/api/tasks/{task_id}", status_code=204)
+def delete_task(task_id: str):
+    """Delete a task"""
+    with tasks_lock:
+        tasks.remove(_find_task(task_id))
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8001)
+    # Loopback only: the API has no auth, so it must not be reachable from the network
+    uvicorn.run(app, host="127.0.0.1", port=8001)
